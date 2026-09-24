@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>NiholAi</title>
+  <style>
+    :root {
+      --asosiy-rang: #2E7D32;
+      --ikkinchi-rang: #4CAF50;
+      --fon-rang: #EBF5E9;
+      --matn-fon: #FFFFFF;
+      --matn-rang: #1B5E20;
+    }
+
+    body {
+      background-color: var(--fon-rang);
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+      color: var(--matn-rang);
+    }
+
+    button {
+      background-color: var(--asosiy-rang);
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background-color: var(--ikkinchi-rang);
+      transform: scale(1.05);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--matn-fon);
+      padding: 15px 40px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin: -40px -40px 30px -40px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--asosiy-rang);
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .menyu {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .menyu a {
+      color: var(--matn-rang);
+      text-decoration: none;
+      font-size: 15px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .menyu a:hover {
+      color: var(--asosiy-rang);
+    }
+
+    .header-tugmalar {
+      display: flex;
+      gap: 12px;
+    }
+
+    .header-tugmalar button {
+      padding: 8px 18px;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .kirish-tugma {
+      background-color: transparent;
+      color: var(--asosiy-rang);
+      border: 1px solid var(--asosiy-rang) !important;
+    }
+
+    .kirish-tugma:hover {
+      background-color: var(--fon-rang);
+      color: var(--asosiy-rang);
+    }
+
+    .banner {
+      max-width: 700px;
+      margin: 0 auto 40px auto;
+    }
+
+    .banner h1 {
+      font-size: 32px;
+      line-height: 1.3;
+      color: var(--matn-rang);
+    }
+
+    .banner-accent {
+      color: var(--asosiy-rang);
+    }
+
+    .banner-tavsif {
+      font-size: 16px;
+      color: #3C6E4F;
+      margin: 16px 0 24px 0;
+    }
+
+    .banner-tugmalar {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+    }
+
+    .qanday-tugma {
+      background-color: transparent;
+      color: var(--asosiy-rang);
+      border: 1px solid var(--asosiy-rang) !important;
+    }
+
+    .qanday-tugma:hover {
+      background-color: var(--fon-rang);
+    }
+
+    .xususiyatlar {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .xususiyat {
+      max-width: 140px;
+    }
+
+    .xususiyat-ikon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .xususiyat p {
+      font-size: 13px;
+      color: var(--matn-rang);
+    }
+
+    .tugmalar {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .bolim {
+      display: none;
+      margin-top: 30px;
+      background-color: var(--matn-fon);
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      text-align: left;
+    }
+
+    .bolim.aktiv {
+      display: block;
+    }
+
+    .bolim h3,
+    .bolim p,
+    .bolim > label,
+    .bolim > button,
+    .bolim > input,
+    .bolim > select {
+      text-align: center;
+    }
+
+    .orqaga-tugma {
+      background: none;
+      color: var(--asosiy-rang);
+      padding: 0;
+      font-size: 14px;
+      box-shadow: none;
+      margin-bottom: 10px;
+    }
+
+    .orqaga-tugma:hover {
+      background: none;
+      color: var(--ikkinchi-rang);
+      transform: none;
+      text-decoration: underline;
+    }
+
+    .natija-jadval {
+      text-align: left;
+      margin-top: 10px;
+    }
+
+    .natija-jadval td {
+      padding: 4px 8px;
+    }
+
+    .aniqlash-natija {
+      background-color: #E8F5E9;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+      text-align: left;
+    }
+
+    .qadam {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .qadam-raqam {
+      background-color: var(--asosiy-rang);
+      color: white;
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .qadam-matn h4 {
+      margin: 0 0 4px 0;
+      color: var(--matn-rang);
+    }
+
+    .qadam-matn p {
+      margin: 0;
+      font-size: 14px;
+      color: #3C6E4F;
+    }
+
+    .biz-matn p {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #3C6E4F;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo" onclick="orqagaQaytish()">🌱 NiholAi</div>
+    <nav class="menyu">
+      <a onclick="orqagaQaytish()">Bosh sahifa</a>
+      <a onclick="xizmatlargaOtish()">Xizmatlar</a>
+      <a onclick="bolimniKorsat('biz')">Biz haqimizda</a>
+    </nav>
+    <div class="header-tugmalar">
+      <button class="kirish-tugma">Kirish</button>
+      <button>Ro'yxatdan o'tish</button>
+    </div>
+  </header>
+
+  <section class="banner">
+    <h1>O'simliklaringiz sog'lom bo'lsin — <span class="banner-accent">NiholAI</span> bilan!</h1>
+    <p class="banner-tavsif">
+      Bir rasm orqali o'simlikni aniqlang, parvarish qilish bo'yicha tavsiyalar oling,
+      kasalliklarni aniqlang va hosildorlikni oshiring.
+    </p>
+
+    <div class="banner-tugmalar">
+      <button onclick="bolimniKorsat('aniqlash')">Boshlash →</button>
+      <button class="qanday-tugma" onclick="bolimniKorsat('qanday')">▶ Qanday ishlaydi?</button>
+    </div>
+
+    <div class="xususiyatlar">
+      <div class="xususiyat">
+        <div class="xususiyat-ikon">🔍</div>
+        <p>O'simlikni aniqlash va ma'lumot</p>
+      </div>
+      <div class="xususiyat">
+        <div class="xususiyat-ikon">📅</div>
+        <p>Parvarish jadvali va tavsiyalar</p>
+      </div>
+      <div class="xususiyat">
+        <div class="xususiyat-ikon">🩺</div>
+        <p>Kasalliklarni aniqlash va yechimlar</p>
+      </div>
+      <div class="xususiyat">
+        <div class="xususiyat-ikon">🌾</div>
+        <p>Hududga mos mahsulot prognozi</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="tugmalar">
+    <button onclick="bolimniKorsat('aniqlash')">O'simliklarni aniqlash</button>
+    <button onclick="bolimniKorsat('sogliq')">Sog'liqni tekshirish</button>
+    <button onclick="bolimniKorsat('fermer')">Fermer rejimi</button>
+  </div>
+
+  <div id="aniqlash" class="bolim">
+    <button class="orqaga-tugma" onclick="orqagaQaytish()">← Orqaga</button>
+    <h3>📷 O'simlikni aniqlash</h3>
+    <p>O'simlikning rasmini yuklang, biz uni aniqlaymiz.</p>
+
+    <input type="file" id="osimlikRasmi" accept="image/*" onchange="osimlikRasmniKorsat()">
+    <br><br>
+
+    <img id="osimlikPreview" style="display:none; max-width:100%; border-radius:8px;">
+
+    <br><br>
+    <button id="aniqlashTugmasi" onclick="osimlikniAniqla()" style="display:none;">Aniqlash</button>
+
+    <div id="osimlikNatija"></div>
+  </div>
+
+  <div id="sogliq" class="bolim">
+    <button class="orqaga-tugma" onclick="orqagaQaytish()">← Orqaga</button>
+    <h3>🩺 Sog'liqni tekshirish</h3>
+    <p>O'simlik bargining rasmini yuklang, biz kasallikni aniqlaymiz.</p>
+
+    <input type="file" id="bargRasmi" accept="image/*" onchange="rasmniKorsat()">
+    <br><br>
+
+    <img id="bargPreview" style="display:none; max-width:100%; border-radius:8px;">
+
+    <br><br>
+    <button id="tahlilTugmasi" onclick="kasallikniAniqla()" style="display:none;">Tahlil qilish</button>
+
+    <div id="kasallikNatija"></div>
+  </div>
+
+  <div id="fermer" class="bolim">
+    <button class="orqaga-tugma" onclick="orqagaQaytish()">← Orqaga</button>
+    <h3>🚜 Fermer rejimi</h3>
+
+    <label>Hudud:</label>
+    <select id="hudud" autocomplete="off">
+      <option value="Andijon">Andijon</option>
+      <option value="Buxoro">Buxoro</option>
+      <option value="Fargona">Farg'ona</option>
+      <option value="Jizzax">Jizzax</option>
+      <option value="Qashqadaryo">Qashqadaryo</option>
+      <option value="Navoiy">Navoiy</option>
+      <option value="Namangan">Namangan</option>
+      <option value="Samarqand">Samarqand</option>
+      <option value="Sirdaryo">Sirdaryo</option>
+      <option value="Surxondaryo">Surxondaryo</option>
+      <option value="Toshkent">Toshkent</option>
+      <option value="Xorazm">Xorazm</option>
+      <option value="Qoraqalpogiston">Qoraqalpog'iston Respublikasi</option>
+      <option value="ToshkentShahri">Toshkent shahri</option>
+    </select>
+    <br><br>
+
+    <label>Ekin turi:</label>
+    <select id="ekin" autocomplete="off">
+      <option value="Pomidor">Pomidor</option>
+      <option value="Bodring">Bodring</option>
+      <option value="Kartoshka">Kartoshka</option>
+      <option value="Piyoz">Piyoz</option>
+    </select>
+    <br><br>
+
+    <label>Ko'chatlar soni:</label>
+    <input type="number" id="kochatSoni" placeholder="Masalan: 100">
+    <br><br>
+
+    <label>Bugungi bozor narxi (so'm/kg):</label>
+    <input type="number" id="narx" placeholder="Masalan: 3000">
+    <br><br>
+
+    <button onclick="hisobla()">Hisoblash</button>
+    <div id="hisobNatija"></div>
+  </div>
+
+  <div id="qanday" class="bolim">
+    <button class="orqaga-tugma" onclick="orqagaQaytish()">← Orqaga</button>
+    <h3>❓ Qanday ishlaydi?</h3>
+
+    <div class="qadam">
+      <div class="qadam-raqam">1</div>
+      <div class="qadam-matn">
+        <h4>Rasm yuklang</h4>
+        <p>O'simlik yoki uning bargining rasmini yuklang, yoki kamerada suratga oling.</p>
+      </div>
+    </div>
+
+    <div class="qadam">
+      <div class="qadam-raqam">2</div>
+      <div class="qadam-matn">
+        <h4>Tizim tahlil qiladi</h4>
+        <p>NiholAi rasmni tekshirib, o'simlik turi yoki kasallikni aniqlaydi.</p>
+      </div>
+    </div>
+
+    <div class="qadam">
+      <div class="qadam-raqam">3</div>
+      <div class="qadam-matn">
+        <h4>Natija va tavsiyalar oling</h4>
+        <p>Parvarish bo'yicha to'liq ma'lumot va amaliy tavsiyalarni ko'rasiz.</p>
+      </div>
+    </div>
+
+    <div class="qadam">
+      <div class="qadam-raqam">4</div>
+      <div class="qadam-matn">
+        <h4>Fermer rejimidan foydalaning</h4>
+        <p>Hudud va ekin turini tanlab, taxminiy hosil va daromadni hisoblang.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="biz" class="bolim">
+    <button class="orqaga-tugma" onclick="orqagaQaytish()">← Orqaga</button>
+    <h3>🌱 Biz haqimizda</h3>
+    <div class="biz-matn">
+      <p>NiholAi — HCI (inson-kompyuter muloqoti) fanidan talaba loyihasi sifatida yaratilgan veb-sayt.</p>
+      <p>Loyihaning maqsadi — oddiy foydalanuvchilar va fermerlar uchun o'simliklarni aniqlash, ularning sog'lig'ini tekshirish va hosildorlikni oldindan hisoblash imkonini beruvchi qulay va tushunarli interfeys yaratish.</p>
+      <p>Hozirgi versiya — o'quv maqsadida qadam-baqadam ishlab chiqilmoqda, keyingi bosqichlarda haqiqiy sun'iy intellekt xizmatlari ulanadi.</p>
+    </div>
+  </div>
+
+  <script>
+    function bolimniKorsat(bolimId) {
+      const bolim = document.getElementById(bolimId);
+      if (!bolim) return;
+
+      document.querySelector(".banner").style.display = "none";
+      document.querySelector(".tugmalar").style.display = "none";
+
+      const hammaBolimlar = document.querySelectorAll(".bolim");
+      hammaBolimlar.forEach(function(b) {
+        b.classList.remove("aktiv");
+      });
+
+      bolim.classList.add("aktiv");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function orqagaQaytish() {
+      const hammaBolimlar = document.querySelectorAll(".bolim");
+      hammaBolimlar.forEach(function(bolim) {
+        bolim.classList.remove("aktiv");
+      });
+
+      document.querySelector(".banner").style.display = "block";
+      document.querySelector(".tugmalar").style.display = "flex";
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function xizmatlargaOtish() {
+      orqagaQaytish();
+      setTimeout(function() {
+        document.querySelector(".tugmalar").scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
+    }
+
+    const ekinHosili = {
+      "Pomidor":   { min: 2.5, max: 4.5 },
+      "Bodring":   { min: 1.5, max: 3.0 },
+      "Kartoshka": { min: 0.4, max: 0.8 },
+      "Piyoz":     { min: 0.3, max: 0.6 }
+    };
+
+    const hududKoeffitsienti = {
+      "Andijon": 1.05,
+      "Buxoro": 0.85,
+      "Fargona": 1.05,
+      "Jizzax": 0.9,
+      "Qashqadaryo": 0.95,
+      "Navoiy": 0.7,
+      "Namangan": 1.05,
+      "Samarqand": 1.0,
+      "Sirdaryo": 0.9,
+      "Surxondaryo": 1.0,
+      "Toshkent": 1.1,
+      "Xorazm": 0.95,
+      "Qoraqalpogiston": 0.7,
+      "ToshkentShahri": 1.1
+    };
+
+    function hisobla() {
+      const hudud = document.getElementById("hudud").value;
+      const ekin = document.getElementById("ekin").value;
+      const soni = Number(document.getElementById("kochatSoni").value);
+      const narx = Number(document.getElementById("narx").value);
+
+      const koeffitsient = hududKoeffitsienti[hudud];
+      const hosilOraligi = ekinHosili[ekin];
+
+      const bittaPast = hosilOraligi.min * koeffitsient;
+      const bittaYuqori = hosilOraligi.max * koeffitsient;
+      const bittaOrtacha = (bittaPast + bittaYuqori) / 2;
+
+      const umumiyPast = soni * bittaPast;
+      const umumiyOrtacha = soni * bittaOrtacha;
+      const umumiyYuqori = soni * bittaYuqori;
+
+      const daromadPast = umumiyPast * narx;
+      const daromadOrtacha = umumiyOrtacha * narx;
+      const daromadYuqori = umumiyYuqori * narx;
+
+      document.getElementById("hisobNatija").innerHTML = `
+        <p><b>${hudud}</b> hududida <b>${ekin}</b> uchun ${soni} ta ko'chat natijasi:</p>
+        <table class="natija-jadval">
+          <tr><td>📉 Past stsenariy:</td><td>${umumiyPast.toFixed(1)} kg → ${daromadPast.toFixed(0)} so'm</td></tr>
+          <tr><td>📊 O'rtacha stsenariy:</td><td>${umumiyOrtacha.toFixed(1)} kg → ${daromadOrtacha.toFixed(0)} so'm</td></tr>
+          <tr><td>📈 Yuqori stsenariy:</td><td>${umumiyYuqori.toFixed(1)} kg → ${daromadYuqori.toFixed(0)} so'm</td></tr>
+        </table>
+      `;
+    }
+
+    const kasalliklar = [
+      {
+        nom: "Barg dog'i (fungal)",
+        sabab: "Namlikning yuqori bo'lishi, ventilyatsiya yetarli emas.",
+        tavsiya: [
+          "Zararlangan barglarni olib tashlang",
+          "Mos preparatlar (fungitsid) qo'llang",
+          "Sug'orishni kamaytiring",
+          "O'simlikni yaxshiroq shamollating"
+        ]
+      },
+      {
+        nom: "Kuydirgich (bakterial)",
+        sabab: "Bakteriyalar tuproq yoki suv orqali o'tgan.",
+        tavsiya: [
+          "Kasallangan qismlarni kesib tashlang",
+          "Asboblarni spirt bilan dezinfeksiya qiling",
+          "Sug'orishda barglarni ho'llamaslikka harakat qiling"
+        ]
+      },
+      {
+        nom: "Zararkunanda ta'siri (shira bit)",
+        sabab: "Mayda hasharotlar barg shirasini so'rmoqda.",
+        tavsiya: [
+          "Sovun eritmasi bilan barglarni artib chiqing",
+          "Tabiiy dushman hasharotlarni jalb qiling",
+          "Kerak bo'lsa insektitsid qo'llang"
+        ]
+      },
+      {
+        nom: "Oziqa yetishmovchiligi (azot kam)",
+        sabab: "Tuproqda azot moddasi yetarli emas.",
+        tavsiya: [
+          "Azotli o'g'it bering",
+          "Tuproq tarkibini tekshiring",
+          "Sug'orish tartibini nazorat qiling"
+        ]
+      }
+    ];
+
+    function rasmniKorsat() {
+      const fayl = document.getElementById("bargRasmi").files[0];
+      if (!fayl) return;
+
+      const rasmURL = URL.createObjectURL(fayl);
+      const preview = document.getElementById("bargPreview");
+      preview.src = rasmURL;
+      preview.style.display = "block";
+
+      document.getElementById("tahlilTugmasi").style.display = "inline-block";
+      document.getElementById("kasallikNatija").innerHTML = "";
+    }
+
+    function kasallikniAniqla() {
+      const tasodifiyIndex = Math.floor(Math.random() * kasalliklar.length);
+      const natija = kasalliklar[tasodifiyIndex];
+
+      let tavsiyaHTML = "";
+      natija.tavsiya.forEach(function(item) {
+        tavsiyaHTML += `<li>${item}</li>`;
+      });
+
+      document.getElementById("kasallikNatija").innerHTML = `
+        <div style="background-color:#FDECEA; border-radius:8px; padding:15px; margin-top:15px; text-align:left;">
+          <p style="color:#C62828; font-weight:bold;">⚠️ Aniqlangan kasallik:</p>
+          <p style="font-size:18px; font-weight:bold;">${natija.nom}</p>
+          <p><b>Sabab:</b> ${natija.sabab}</p>
+          <p><b>Tavsiya:</b></p>
+          <ul>${tavsiyaHTML}</ul>
+        </div>
+      `;
+    }
+
+    const osimliklar = [
+      {
+        nom: "Monstera deliciosa",
+        oila: "Aroidlar oilasi",
+        aniqlik: 96,
+        sugorish: "Har 7-10 kunda (yozda ko'proq)",
+        yoruglik: "Yorug', lekin to'g'ridan-to'g'ri quyosh emas",
+        harorat: "18-28°C",
+        maslahat: "Barglari changlanishdan zarar ko'radi. Vaqti-vaqti bilan nam mato bilan artib turing."
+      },
+      {
+        nom: "Ficus elastica",
+        oila: "Tut kabilar oilasi",
+        aniqlik: 91,
+        sugorish: "Har 10-14 kunda, tuproq quriganda",
+        yoruglik: "Yorqin, xira yorug'lik",
+        harorat: "16-24°C",
+        maslahat: "Sovuq shamoldan va harorat keskin o'zgarishidan saqlang."
+      },
+      {
+        nom: "Sansevieria trifasciata",
+        oila: "Sparjagullilar oilasi",
+        aniqlik: 94,
+        sugorish: "Oyda 1-2 marta, tuproq to'liq quriganda",
+        yoruglik: "Har qanday yorug'likka chidamli",
+        harorat: "15-30°C",
+        maslahat: "Ortiqcha sug'orish ildiz chirishiga olib keladi, kamroq sug'oring."
+      },
+      {
+        nom: "Epipremnum aureum",
+        oila: "Aroidlar oilasi",
+        aniqlik: 89,
+        sugorish: "Har 7 kunda, tuproq yuzasi quriganda",
+        yoruglik: "O'rta yoki xira yorug'lik",
+        harorat: "18-27°C",
+        maslahat: "Tez o'sadi, vaqti-vaqti bilan tuqqa qirqib turing."
+      }
+    ];
+
+    function osimlikRasmniKorsat() {
+      const fayl = document.getElementById("osimlikRasmi").files[0];
+      if (!fayl) return;
+
+      const rasmURL = URL.createObjectURL(fayl);
+      const preview = document.getElementById("osimlikPreview");
+      preview.src = rasmURL;
+      preview.style.display = "block";
+
+      document.getElementById("aniqlashTugmasi").style.display = "inline-block";
+      document.getElementById("osimlikNatija").innerHTML = "";
+    }
+
+    function osimlikniAniqla() {
+      const tasodifiyIndex = Math.floor(Math.random() * osimliklar.length);
+      const natija = osimliklar[tasodifiyIndex];
+
+      document.getElementById("osimlikNatija").innerHTML = `
+        <div class="aniqlash-natija">
+          <p style="font-size:18px; font-weight:bold;">${natija.nom}</p>
+          <p>${natija.oila} • ✅ Aniqlandi: ${natija.aniqlik}%</p>
+          <p><b>💧 Sug'orish:</b> ${natija.sugorish}</p>
+          <p><b>☀️ Yorug'lik:</b> ${natija.yoruglik}</p>
+          <p><b>🌡️ Harorat:</b> ${natija.harorat}</p>
+          <p><b>💡 Maslahat:</b> ${natija.maslahat}</p>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
