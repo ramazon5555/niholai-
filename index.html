@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="uz">
 <head>
-  <title>NiholAi</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NiholAi — O'simliklar va Ekinlar Diagnostikasi</title>
   <style>
     :root {
       --asosiy-rang: #2E7D32;
@@ -9,6 +11,12 @@
       --fon-rang: #EBF5E9;
       --matn-fon: #FFFFFF;
       --matn-rang: #1B5E20;
+      --xavf-rang: #C62828;
+      --ogoh-rang: #F57F17;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
@@ -17,6 +25,7 @@
       text-align: center;
       padding: 40px;
       color: var(--matn-rang);
+      margin: 0;
     }
 
     button {
@@ -32,7 +41,7 @@
 
     button:hover {
       background-color: var(--ikkinchi-rang);
-      transform: scale(1.05);
+      transform: scale(1.03);
     }
 
     .header {
@@ -49,11 +58,14 @@
     }
 
     .logo {
-      font-size: 20px;
+      font-size: 22px;
       font-weight: bold;
       color: var(--asosiy-rang);
       white-space: nowrap;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .menyu {
@@ -68,19 +80,22 @@
       font-size: 15px;
       white-space: nowrap;
       cursor: pointer;
+      font-weight: 500;
     }
 
     .menyu a:hover {
       color: var(--asosiy-rang);
+      text-decoration: underline;
     }
 
     .header-tugmalar {
       display: flex;
+      align-items: center;
       gap: 12px;
     }
 
     .header-tugmalar button {
-      padding: 8px 18px;
+      padding: 8px 16px;
       font-size: 14px;
       white-space: nowrap;
     }
@@ -94,6 +109,29 @@
     .kirish-tugma:hover {
       background-color: var(--fon-rang);
       color: var(--asosiy-rang);
+    }
+
+    .ai-holat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      transition: 0.2s;
+    }
+    .ai-holat-badge.live {
+      background-color: #E8F5E9;
+      color: #2E7D32;
+      border: 1px solid #81C784;
+    }
+    .ai-holat-badge.offline {
+      background-color: #FFF9C4;
+      color: #F57F17;
+      border: 1px solid #FFF176;
     }
 
     .banner {
@@ -115,6 +153,7 @@
       font-size: 16px;
       color: #3C6E4F;
       margin: 16px 0 24px 0;
+      line-height: 1.5;
     }
 
     .banner-tugmalar {
@@ -147,13 +186,14 @@
     }
 
     .xususiyat-ikon {
-      font-size: 24px;
+      font-size: 26px;
       margin-bottom: 8px;
     }
 
     .xususiyat p {
       font-size: 13px;
       color: var(--matn-rang);
+      margin: 0;
     }
 
     .tugmalar {
@@ -169,10 +209,10 @@
       background-color: var(--matn-fon);
       padding: 30px;
       border-radius: 12px;
-      max-width: 500px;
+      max-width: 580px;
       margin-left: auto;
       margin-right: auto;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
       text-align: left;
     }
 
@@ -195,7 +235,8 @@
       padding: 0;
       font-size: 14px;
       box-shadow: none;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
+      display: inline-block;
     }
 
     .orqaga-tugma:hover {
@@ -208,18 +249,37 @@
     .natija-jadval {
       text-align: left;
       margin-top: 10px;
+      width: 100%;
     }
 
     .natija-jadval td {
-      padding: 4px 8px;
+      padding: 6px 8px;
     }
 
     .aniqlash-natija {
       background-color: #E8F5E9;
-      border-radius: 8px;
-      padding: 15px;
-      margin-top: 15px;
+      border-radius: 10px;
+      padding: 18px;
+      margin-top: 20px;
       text-align: left;
+      border-left: 5px solid var(--asosiy-rang);
+    }
+
+    .kasallik-natija-box {
+      background-color: #FDF4F3;
+      border-radius: 10px;
+      padding: 18px;
+      margin-top: 20px;
+      text-align: left;
+      border-left: 5px solid var(--xavf-rang);
+    }
+    .soglom-natija-box {
+      background-color: #E8F5E9;
+      border-radius: 10px;
+      padding: 18px;
+      margin-top: 20px;
+      text-align: left;
+      border-left: 5px solid var(--ikkinchi-rang);
     }
 
     .qadam {
@@ -260,27 +320,78 @@
       line-height: 1.6;
       color: #3C6E4F;
     }
+
+    /* Modal oyna */
+    .modal-parda {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+    }
+    .modal-parda.ochiq {
+      display: flex;
+    }
+    .modal-karkas {
+      background: white;
+      border-radius: 12px;
+      max-width: 480px;
+      width: 100%;
+      padding: 24px;
+      text-align: left;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .loading-spinner {
+      display: none;
+      margin: 15px auto;
+      text-align: center;
+      font-weight: bold;
+      color: var(--asosiy-rang);
+    }
+
+    input[type="text"], input[type="password"], input[type="number"], select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #B0BEC5;
+      border-radius: 6px;
+      font-size: 15px;
+      margin-top: 6px;
+      margin-bottom: 14px;
+    }
   </style>
 </head>
 <body>
+
+  <!-- HEADER -->
   <header class="header">
     <div class="logo" onclick="orqagaQaytish()">🌱 NiholAi</div>
     <nav class="menyu">
       <a onclick="orqagaQaytish()">Bosh sahifa</a>
       <a onclick="xizmatlargaOtish()">Xizmatlar</a>
       <a onclick="bolimniKorsat('biz')">Biz haqimizda</a>
+      <a onclick="bolimniKorsat('qanday')">Qo'llanma</a>
     </nav>
     <div class="header-tugmalar">
-      <button class="kirish-tugma">Kirish</button>
-      <button>Ro'yxatdan o'tish</button>
+      <div id="aiBadge" class="ai-holat-badge offline" onclick="modalOch()">
+        <span id="aiBadgeText">🟡 Holat aniqlanmoqda...</span>
+      </div>
+      <button class="kirish-tugma" onclick="modalOch()">⚙️ Sozlamalar</button>
     </div>
   </header>
 
+  <!-- BANNER -->
   <section class="banner">
     <h1>O'simliklaringiz sog'lom bo'lsin — <span class="banner-accent">NiholAI</span> bilan!</h1>
     <p class="banner-tavsif">
-      Bir rasm orqali o'simlikni aniqlang, parvarish qilish bo'yicha tavsiyalar oling,
-      kasalliklarni aniqlang va hosildorlikni oshiring.
+      Bir rasm orqali o'simlikni aniqlang, kasalliklarini tekshiring,
+      professional agronom tavsiyalarini oling va hosildorlikni oldindan hisoblang.
     </p>
 
     <div class="banner-tugmalar">
@@ -291,105 +402,117 @@
     <div class="xususiyatlar">
       <div class="xususiyat">
         <div class="xususiyat-ikon">🔍</div>
-        <p>O'simlikni aniqlash va ma'lumot</p>
-      </div>
-      <div class="xususiyat">
-        <div class="xususiyat-ikon">📅</div>
-        <p>Parvarish jadvali va tavsiyalar</p>
+        <p>O'simlikni aniqlash va parvarish</p>
       </div>
       <div class="xususiyat">
         <div class="xususiyat-ikon">🩺</div>
-        <p>Kasalliklarni aniqlash va yechimlar</p>
+        <p>Kasalliklarni sun'iy intellekt tahlili</p>
       </div>
       <div class="xususiyat">
         <div class="xususiyat-ikon">🌾</div>
-        <p>Hududga mos mahsulot prognozi</p>
+        <p>Hududiy hosil va daromad prognozi</p>
+      </div>
+      <div class="xususiyat">
+        <div class="xususiyat-ikon">⚡</div>
+        <p>Gemini Vision AI + Offline Baza</p>
       </div>
     </div>
   </section>
 
+  <!-- XIZMATLAR TUGMALARI -->
   <div class="tugmalar">
-    <button onclick="bolimniKorsat('aniqlash')">O'simliklarni aniqlash</button>
-    <button onclick="bolimniKorsat('sogliq')">Sog'liqni tekshirish</button>
-    <button onclick="bolimniKorsat('fermer')">Fermer rejimi</button>
+    <button onclick="bolimniKorsat('aniqlash')">📷 O'simliklarni aniqlash</button>
+    <button onclick="bolimniKorsat('sogliq')">🩺 Sog'liqni tekshirish</button>
+    <button onclick="bolimniKorsat('fermer')">🚜 Fermer rejimi</button>
   </div>
 
+  <!-- 1. O'SIMLIKNI ANIQLASH BO'LIMI -->
   <div id="aniqlash" class="bolim">
     <button class="orqaga-tugma" onclick="orqagaQaytish()">← Orqaga</button>
     <h3>📷 O'simlikni aniqlash</h3>
-    <p>O'simlikning rasmini yuklang, biz uni aniqlaymiz.</p>
+    <p>O'simlik yoki gulning fotosuratini yuklang, sun'iy intellekt uning turini va parvarishlash qoidalarini aniqlaydi.</p>
 
-    <input type="file" id="osimlikRasmi" accept="image/*" onchange="osimlikRasmniKorsat()">
-    <br><br>
+    <div style="text-align:center;">
+      <input type="file" id="osimlikRasmi" accept="image/*" onchange="osimlikRasmniKorsat()">
+      <br><br>
+      <img id="osimlikPreview" style="display:none; max-width:100%; border-radius:8px; margin: 0 auto 15px auto;">
+      <br>
+      <button id="aniqlashTugmasi" onclick="osimlikniAniqla()" style="display:none;">Aniqlash</button>
+    </div>
 
-    <img id="osimlikPreview" style="display:none; max-width:100%; border-radius:8px;">
-
-    <br><br>
-    <button id="aniqlashTugmasi" onclick="osimlikniAniqla()" style="display:none;">Aniqlash</button>
+    <div id="osimlikLoading" class="loading-spinner">
+      ⏳ Sun'iy intellekt o'simlikni tahlil qilmoqda...
+    </div>
 
     <div id="osimlikNatija"></div>
   </div>
 
+  <!-- 2. SOG'LIQNI TEKSHIRISH (KASALLIKLAR) -->
   <div id="sogliq" class="bolim">
     <button class="orqaga-tugma" onclick="orqagaQaytish()">← Orqaga</button>
     <h3>🩺 Sog'liqni tekshirish</h3>
-    <p>O'simlik bargining rasmini yuklang, biz kasallikni aniqlaymiz.</p>
+    <p>Zararlangan yoki shubhali barg fotosuratini yuklang, AI kasallik va davolash choralarini topadi.</p>
 
-    <input type="file" id="bargRasmi" accept="image/*" onchange="rasmniKorsat()">
-    <br><br>
+    <div style="text-align:center;">
+      <input type="file" id="bargRasmi" accept="image/*" onchange="rasmniKorsat()">
+      <br><br>
+      <img id="bargPreview" style="display:none; max-width:100%; border-radius:8px; margin: 0 auto 15px auto;">
+      <br>
+      <button id="tahlilTugmasi" onclick="kasallikniAniqla()" style="display:none;">Tahlil qilish</button>
+    </div>
 
-    <img id="bargPreview" style="display:none; max-width:100%; border-radius:8px;">
-
-    <br><br>
-    <button id="tahlilTugmasi" onclick="kasallikniAniqla()" style="display:none;">Tahlil qilish</button>
+    <div id="kasallikLoading" class="loading-spinner">
+      ⏳ Nihol AI fotosuratni agronomik tahlil qilmoqda...
+    </div>
 
     <div id="kasallikNatija"></div>
   </div>
 
+  <!-- 3. FERMER REJIMI (HOSIL VA DAROMAD KALKULYATORI) -->
   <div id="fermer" class="bolim">
     <button class="orqaga-tugma" onclick="orqagaQaytish()">← Orqaga</button>
     <h3>🚜 Fermer rejimi</h3>
+    <p>Hududingiz va ekiladigan ko'chat sonini kiriting, taxminiy hosildorlik va daromadni hisoblang.</p>
 
-    <label>Hudud:</label>
+    <label><b>Hudud:</b></label>
     <select id="hudud" autocomplete="off">
-      <option value="Andijon">Andijon</option>
-      <option value="Buxoro">Buxoro</option>
-      <option value="Fargona">Farg'ona</option>
-      <option value="Jizzax">Jizzax</option>
-      <option value="Qashqadaryo">Qashqadaryo</option>
-      <option value="Navoiy">Navoiy</option>
-      <option value="Namangan">Namangan</option>
-      <option value="Samarqand">Samarqand</option>
-      <option value="Sirdaryo">Sirdaryo</option>
-      <option value="Surxondaryo">Surxondaryo</option>
-      <option value="Toshkent">Toshkent</option>
-      <option value="Xorazm">Xorazm</option>
+      <option value="Andijon">Andijon viloyati</option>
+      <option value="Buxoro">Buxoro viloyati</option>
+      <option value="Fargona">Farg'ona viloyati</option>
+      <option value="Jizzax">Jizzax viloyati</option>
+      <option value="Qashqadaryo">Qashqadaryo viloyati</option>
+      <option value="Navoiy">Navoiy viloyati</option>
+      <option value="Namangan">Namangan viloyati</option>
+      <option value="Samarqand">Samarqand viloyati</option>
+      <option value="Sirdaryo">Sirdaryo viloyati</option>
+      <option value="Surxondaryo">Surxondaryo viloyati</option>
+      <option value="Toshkent">Toshkent viloyati</option>
+      <option value="Xorazm">Xorazm viloyati</option>
       <option value="Qoraqalpogiston">Qoraqalpog'iston Respublikasi</option>
       <option value="ToshkentShahri">Toshkent shahri</option>
     </select>
-    <br><br>
 
-    <label>Ekin turi:</label>
+    <label><b>Ekin turi:</b></label>
     <select id="ekin" autocomplete="off">
       <option value="Pomidor">Pomidor</option>
       <option value="Bodring">Bodring</option>
       <option value="Kartoshka">Kartoshka</option>
       <option value="Piyoz">Piyoz</option>
     </select>
-    <br><br>
 
-    <label>Ko'chatlar soni:</label>
-    <input type="number" id="kochatSoni" placeholder="Masalan: 100">
-    <br><br>
+    <label><b>Ko'chatlar soni (dona):</b></label>
+    <input type="number" id="kochatSoni" placeholder="Masalan: 500" value="100">
 
-    <label>Bugungi bozor narxi (so'm/kg):</label>
-    <input type="number" id="narx" placeholder="Masalan: 3000">
-    <br><br>
+    <label><b>Bugungi bozor narxi (so'm/kg):</b></label>
+    <input type="number" id="narx" placeholder="Masalan: 4000" value="3000">
 
-    <button onclick="hisobla()">Hisoblash</button>
+    <div style="text-align:center;">
+      <button onclick="hisobla()">Hisoblash</button>
+    </div>
     <div id="hisobNatija"></div>
   </div>
 
+  <!-- 4. QANDAY ISHLAYDI? -->
   <div id="qanday" class="bolim">
     <button class="orqaga-tugma" onclick="orqagaQaytish()">← Orqaga</button>
     <h3>❓ Qanday ishlaydi?</h3>
@@ -397,47 +520,75 @@
     <div class="qadam">
       <div class="qadam-raqam">1</div>
       <div class="qadam-matn">
-        <h4>Rasm yuklang</h4>
-        <p>O'simlik yoki uning bargining rasmini yuklang, yoki kamerada suratga oling.</p>
+        <h4>Fotosurat yuklang</h4>
+        <p>O'simlik, ko'chat yoki barg fotosuratini kameradan yoki fayldan tanlang.</p>
       </div>
     </div>
 
     <div class="qadam">
       <div class="qadam-raqam">2</div>
       <div class="qadam-matn">
-        <h4>Tizim tahlil qiladi</h4>
-        <p>NiholAi rasmni tekshirib, o'simlik turi yoki kasallikni aniqlaydi.</p>
+        <h4>Sun'iy intellekt tahlili</h4>
+        <p>Gemini Vision AI va offline agro-baza o'simlik turi va kasallik o'choqlarini aniqlaydi.</p>
       </div>
     </div>
 
     <div class="qadam">
       <div class="qadam-raqam">3</div>
       <div class="qadam-matn">
-        <h4>Natija va tavsiyalar oling</h4>
-        <p>Parvarish bo'yicha to'liq ma'lumot va amaliy tavsiyalarni ko'rasiz.</p>
+        <h4>Agronom tavsiyalari</h4>
+        <p>Davolash choralari, tavsiya etiladigan preparatlar va profilaktikani o'rganing.</p>
       </div>
     </div>
 
     <div class="qadam">
       <div class="qadam-raqam">4</div>
       <div class="qadam-matn">
-        <h4>Fermer rejimidan foydalaning</h4>
-        <p>Hudud va ekin turini tanlab, taxminiy hosil va daromadni hisoblang.</p>
+        <h4>Fermer kalkulyatori</h4>
+        <p>Hududingiz sharoitida qancha hosil va foyda olishingizni hisoblab boring.</p>
       </div>
     </div>
   </div>
 
+  <!-- 5. BIZ HAQIMIZDA -->
   <div id="biz" class="bolim">
     <button class="orqaga-tugma" onclick="orqagaQaytish()">← Orqaga</button>
     <h3>🌱 Biz haqimizda</h3>
     <div class="biz-matn">
-      <p>NiholAi — HCI (inson-kompyuter muloqoti) fanidan talaba loyihasi sifatida yaratilgan veb-sayt.</p>
-      <p>Loyihaning maqsadi — oddiy foydalanuvchilar va fermerlar uchun o'simliklarni aniqlash, ularning sog'lig'ini tekshirish va hosildorlikni oldindan hisoblash imkonini beruvchi qulay va tushunarli interfeys yaratish.</p>
-      <p>Hozirgi versiya — o'quv maqsadida qadam-baqadam ishlab chiqilmoqda, keyingi bosqichlarda haqiqiy sun'iy intellekt xizmatlari ulanadi.</p>
+      <p><b>NiholAi</b> — HCI (inson-kompyuter muloqoti) talaba loyihasi sifatida boshlangan va zamonaviy sun'iy intellekt texnologiyalari bilan boyitilgan aqlli agrotexnik platforma.</p>
+      <p><b>Loyiha maqsadi:</b> Oddiy bog'bonlar, dehqonlar va fermerlar uchun o'simliklar salomatligini saqlash, kasalliklarni dastlabki bosqichda aniqlash va hosildorlikni bashorat qilishda qulay vosita yaratish.</p>
+      <p><b>Imkoniyatlar:</b> Google Gemini Vision AI multimodal modeli, offline agro-ma'lumotlar bazasi, Telegram bot integratsiyasi va CLI tahlil vositasi.</p>
+    </div>
+  </div>
+
+  <!-- SOZLAMALAR MODAL OYNASI (API KALIT) -->
+  <div id="modalParda" class="modal-parda">
+    <div class="modal-karkas">
+      <h3 style="margin-top:0;">⚙️ NiholAI Sozlamalari</h3>
+      <p style="font-size:14px; color:#555;">
+        NiholAI 2 xil rejimda ishlay oladi:<br>
+        • <b>🟢 Jonli AI:</b> Google Gemini Vision orqali real fotosuratlarni 100% tahlil qilish.<br>
+        • <b>🟡 Offline Baza:</b> Kalitsiz holatda ham mahalliy agro-ma'lumotlar bazasi orqali ishlash.
+      </p>
+
+      <label><b>Google Gemini API Kaliti:</b></label>
+      <input type="password" id="inputApiKey" placeholder="AIzaSy...">
+      <p style="font-size:12px; color:#777; margin-top:-8px;">
+        Kalit loyiha papkasidagi <code>.env</code> faylida ham sozlangan.
+      </p>
+
+      <div style="display:flex; justify-content:space-between; margin-top:15px;">
+        <button type="button" style="background:#d32f2f; padding:8px 14px; font-size:13px;" onclick="kalitniTozalash()">Kalitni o'chirish</button>
+        <div>
+          <button type="button" style="background:#888; padding:8px 14px; font-size:13px;" onclick="modalYopish()">Yopish</button>
+          <button type="button" style="padding:8px 18px; font-size:13px;" onclick="kalitniSaqlash()">Saqlash</button>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
+    // 1. BO'LIMLARNI BOSHQARISH
     function bolimniKorsat(bolimId) {
       const bolim = document.getElementById(bolimId);
       if (!bolim) return;
@@ -473,6 +624,62 @@
       }, 100);
     }
 
+    // 2. MODAL OYNA VA STATUS
+    function modalOch() {
+      document.getElementById("modalParda").classList.add("ochiq");
+    }
+
+    function modalYopish() {
+      document.getElementById("modalParda").classList.remove("ochiq");
+    }
+
+    function yangilashStatus(isLive) {
+      const badge = document.getElementById("aiBadge");
+      const badgeText = document.getElementById("aiBadgeText");
+      if (isLive) {
+        badge.className = "ai-holat-badge live";
+        badgeText.textContent = "🟢 Jonli Gemini AI Faol";
+      } else {
+        badge.className = "ai-holat-badge offline";
+        badgeText.textContent = "🟡 Offline Agro-Baza";
+      }
+    }
+
+    async function tekshirStatus() {
+      const savedKey = localStorage.getItem("NIHOLA_GEMINI_KEY") || "";
+      if (savedKey) {
+        document.getElementById("inputApiKey").value = savedKey;
+      }
+      try {
+        const resp = await fetch("/api/status");
+        if (resp.ok) {
+          const data = await resp.json();
+          yangilashStatus(Boolean(savedKey || data.env_key_available));
+        } else {
+          yangilashStatus(Boolean(savedKey));
+        }
+      } catch (e) {
+        yangilashStatus(Boolean(savedKey));
+      }
+    }
+
+    function kalitniSaqlash() {
+      const val = (document.getElementById("inputApiKey").value || "").trim();
+      if (val) {
+        localStorage.setItem("NIHOLA_GEMINI_KEY", val);
+        yangilashStatus(true);
+      }
+      modalYopish();
+    }
+
+    function kalitniTozalash() {
+      localStorage.removeItem("NIHOLA_GEMINI_KEY");
+      document.getElementById("inputApiKey").value = "";
+      tekshirStatus();
+      modalYopish();
+    }
+
+    // 3. FERMER REJIMI (HOSILDORLIK KALKULYATORI)
     const ekinHosili = {
       "Pomidor":   { min: 2.5, max: 4.5 },
       "Bodring":   { min: 1.5, max: 3.0 },
@@ -500,11 +707,11 @@
     function hisobla() {
       const hudud = document.getElementById("hudud").value;
       const ekin = document.getElementById("ekin").value;
-      const soni = Number(document.getElementById("kochatSoni").value);
-      const narx = Number(document.getElementById("narx").value);
+      const soni = Number(document.getElementById("kochatSoni").value) || 0;
+      const narx = Number(document.getElementById("narx").value) || 0;
 
-      const koeffitsient = hududKoeffitsienti[hudud];
-      const hosilOraligi = ekinHosili[ekin];
+      const koeffitsient = hududKoeffitsienti[hudud] || 1.0;
+      const hosilOraligi = ekinHosili[ekin] || { min: 1, max: 2 };
 
       const bittaPast = hosilOraligi.min * koeffitsient;
       const bittaYuqori = hosilOraligi.max * koeffitsient;
@@ -519,55 +726,18 @@
       const daromadYuqori = umumiyYuqori * narx;
 
       document.getElementById("hisobNatija").innerHTML = `
-        <p><b>${hudud}</b> hududida <b>${ekin}</b> uchun ${soni} ta ko'chat natijasi:</p>
-        <table class="natija-jadval">
-          <tr><td>📉 Past stsenariy:</td><td>${umumiyPast.toFixed(1)} kg → ${daromadPast.toFixed(0)} so'm</td></tr>
-          <tr><td>📊 O'rtacha stsenariy:</td><td>${umumiyOrtacha.toFixed(1)} kg → ${daromadOrtacha.toFixed(0)} so'm</td></tr>
-          <tr><td>📈 Yuqori stsenariy:</td><td>${umumiyYuqori.toFixed(1)} kg → ${daromadYuqori.toFixed(0)} so'm</td></tr>
-        </table>
+        <div class="aniqlash-natija" style="margin-top:15px;">
+          <p style="margin:0 0 8px 0;"><b>${hudud}</b> hududida <b>${ekin}</b> uchun ${soni} ta ko'chat natijasi:</p>
+          <table class="natija-jadval">
+            <tr><td>📉 Past stsenariy:</td><td><b>${umumiyPast.toFixed(1)} kg</b> → ${daromadPast.toLocaleString()} so'm</td></tr>
+            <tr><td>📊 O'rtacha stsenariy:</td><td><b>${umumiyOrtacha.toFixed(1)} kg</b> → ${daromadOrtacha.toLocaleString()} so'm</td></tr>
+            <tr><td>📈 Yuqori stsenariy:</td><td><b>${umumiyYuqori.toFixed(1)} kg</b> → ${daromadYuqori.toLocaleString()} so'm</td></tr>
+          </table>
+        </div>
       `;
     }
 
-    const kasalliklar = [
-      {
-        nom: "Barg dog'i (fungal)",
-        sabab: "Namlikning yuqori bo'lishi, ventilyatsiya yetarli emas.",
-        tavsiya: [
-          "Zararlangan barglarni olib tashlang",
-          "Mos preparatlar (fungitsid) qo'llang",
-          "Sug'orishni kamaytiring",
-          "O'simlikni yaxshiroq shamollating"
-        ]
-      },
-      {
-        nom: "Kuydirgich (bakterial)",
-        sabab: "Bakteriyalar tuproq yoki suv orqali o'tgan.",
-        tavsiya: [
-          "Kasallangan qismlarni kesib tashlang",
-          "Asboblarni spirt bilan dezinfeksiya qiling",
-          "Sug'orishda barglarni ho'llamaslikka harakat qiling"
-        ]
-      },
-      {
-        nom: "Zararkunanda ta'siri (shira bit)",
-        sabab: "Mayda hasharotlar barg shirasini so'rmoqda.",
-        tavsiya: [
-          "Sovun eritmasi bilan barglarni artib chiqing",
-          "Tabiiy dushman hasharotlarni jalb qiling",
-          "Kerak bo'lsa insektitsid qo'llang"
-        ]
-      },
-      {
-        nom: "Oziqa yetishmovchiligi (azot kam)",
-        sabab: "Tuproqda azot moddasi yetarli emas.",
-        tavsiya: [
-          "Azotli o'g'it bering",
-          "Tuproq tarkibini tekshiring",
-          "Sug'orish tartibini nazorat qiling"
-        ]
-      }
-    ];
-
+    // 4. SOG'LIQNI TEKSHIRISH (AI DIAGNOSTIKA)
     function rasmniKorsat() {
       const fayl = document.getElementById("bargRasmi").files[0];
       if (!fayl) return;
@@ -581,65 +751,85 @@
       document.getElementById("kasallikNatija").innerHTML = "";
     }
 
-    function kasallikniAniqla() {
-      const tasodifiyIndex = Math.floor(Math.random() * kasalliklar.length);
-      const natija = kasalliklar[tasodifiyIndex];
+    async function kasallikniAniqla() {
+      const fayl = document.getElementById("bargRasmi").files[0];
+      if (!fayl) return;
 
-      let tavsiyaHTML = "";
-      natija.tavsiya.forEach(function(item) {
-        tavsiyaHTML += `<li>${item}</li>`;
-      });
+      const loading = document.getElementById("kasallikLoading");
+      const natijaBox = document.getElementById("kasallikNatija");
 
-      document.getElementById("kasallikNatija").innerHTML = `
-        <div style="background-color:#FDECEA; border-radius:8px; padding:15px; margin-top:15px; text-align:left;">
-          <p style="color:#C62828; font-weight:bold;">⚠️ Aniqlangan kasallik:</p>
-          <p style="font-size:18px; font-weight:bold;">${natija.nom}</p>
-          <p><b>Sabab:</b> ${natija.sabab}</p>
-          <p><b>Tavsiya:</b></p>
-          <ul>${tavsiyaHTML}</ul>
-        </div>
-      `;
+      loading.style.display = "block";
+      natijaBox.innerHTML = "";
+
+      const formData = new FormData();
+      formData.append("file", fayl);
+
+      const clientKey = localStorage.getItem("NIHOLA_GEMINI_KEY") || "";
+      const headers = {};
+      if (clientKey) {
+        headers["X-Gemini-Key"] = clientKey;
+      }
+
+      try {
+        const resp = await fetch("/api/diagnose", {
+          method: "POST",
+          headers: headers,
+          body: formData
+        });
+
+        if (!resp.ok) {
+          throw new Error("Server xatosi: " + resp.status);
+        }
+
+        const data = await resp.json();
+        const statusLower = (data.status || "").toLowerCase();
+        const isHealthy = statusLower.indexOf("sog'lom") !== -1 || statusLower.indexOf("healthy") !== -1;
+        const boxClass = isHealthy ? "soglom-natija-box" : "kasallik-natija-box";
+        const statusColor = isHealthy ? "#2E7D32" : "#C62828";
+        const statusIcon = isHealthy ? "🟢" : "⚠️";
+
+        let tavsiyaHTML = "";
+        (data.treatment || []).forEach(function(item) {
+          tavsiyaHTML += `<li>${item}</li>`;
+        });
+
+        let profilaktikaHTML = "";
+        (data.prevention || []).forEach(function(p) {
+          profilaktikaHTML += `<li>${p}</li>`;
+        });
+
+        natijaBox.innerHTML = `
+          <div class="${boxClass}">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="color:${statusColor}; font-weight:bold; font-size:16px;">
+                ${statusIcon} ${data.status || "Kasallik tekshiruvi"}
+              </span>
+              <span style="font-size:12px; background:#fff; padding:4px 8px; border-radius:12px; border:1px solid #ddd;">
+                ${data.source || "NiholAI"}
+              </span>
+            </div>
+            <p style="font-size:18px; font-weight:bold; margin:6px 0;">${data.plant_name || "O'simlik"} — ${data.disease_name || "Tashxis"}</p>
+            <p style="margin:4px 0;"><b>Ishonch darajasi:</b> ${data.confidence || 90}% &bull; <b>Xavf darajasi:</b> ${data.severity || "O'rtacha"}</p>
+            <p style="margin:8px 0 4px 0;"><b>🔍 Alomatlar:</b> ${data.symptoms || "Alomatlar qayd etilmadi."}</p>
+            
+            <p style="margin:10px 0 4px 0; font-weight:bold;">💊 Tavsiya etiladigan davolash choralari:</p>
+            <ul style="margin:4px 0 10px 20px; padding:0;">${tavsiyaHTML}</ul>
+
+            ${profilaktikaHTML ? `<p style="margin:10px 0 4px 0; font-weight:bold;">🛡 Profilaktika (Oldini olish):</p><ul style="margin:4px 0 0 20px; padding:0;">${profilaktikaHTML}</ul>` : ''}
+          </div>
+        `;
+      } catch (err) {
+        natijaBox.innerHTML = `
+          <div style="background:#FFEBEE; color:#C62828; padding:15px; border-radius:8px; margin-top:15px;">
+            ❌ Xatolik yuz berdi: ${err.message}
+          </div>
+        `;
+      } finally {
+        loading.style.display = "none";
+      }
     }
 
-    const osimliklar = [
-      {
-        nom: "Monstera deliciosa",
-        oila: "Aroidlar oilasi",
-        aniqlik: 96,
-        sugorish: "Har 7-10 kunda (yozda ko'proq)",
-        yoruglik: "Yorug', lekin to'g'ridan-to'g'ri quyosh emas",
-        harorat: "18-28°C",
-        maslahat: "Barglari changlanishdan zarar ko'radi. Vaqti-vaqti bilan nam mato bilan artib turing."
-      },
-      {
-        nom: "Ficus elastica",
-        oila: "Tut kabilar oilasi",
-        aniqlik: 91,
-        sugorish: "Har 10-14 kunda, tuproq quriganda",
-        yoruglik: "Yorqin, xira yorug'lik",
-        harorat: "16-24°C",
-        maslahat: "Sovuq shamoldan va harorat keskin o'zgarishidan saqlang."
-      },
-      {
-        nom: "Sansevieria trifasciata",
-        oila: "Sparjagullilar oilasi",
-        aniqlik: 94,
-        sugorish: "Oyda 1-2 marta, tuproq to'liq quriganda",
-        yoruglik: "Har qanday yorug'likka chidamli",
-        harorat: "15-30°C",
-        maslahat: "Ortiqcha sug'orish ildiz chirishiga olib keladi, kamroq sug'oring."
-      },
-      {
-        nom: "Epipremnum aureum",
-        oila: "Aroidlar oilasi",
-        aniqlik: 89,
-        sugorish: "Har 7 kunda, tuproq yuzasi quriganda",
-        yoruglik: "O'rta yoki xira yorug'lik",
-        harorat: "18-27°C",
-        maslahat: "Tez o'sadi, vaqti-vaqti bilan tuqqa qirqib turing."
-      }
-    ];
-
+    // 5. O'SIMLIKNI ANIQLASH (AI BOTANIKA)
     function osimlikRasmniKorsat() {
       const fayl = document.getElementById("osimlikRasmi").files[0];
       if (!fayl) return;
@@ -653,21 +843,66 @@
       document.getElementById("osimlikNatija").innerHTML = "";
     }
 
-    function osimlikniAniqla() {
-      const tasodifiyIndex = Math.floor(Math.random() * osimliklar.length);
-      const natija = osimliklar[tasodifiyIndex];
+    async function osimlikniAniqla() {
+      const fayl = document.getElementById("osimlikRasmi").files[0];
+      if (!fayl) return;
 
-      document.getElementById("osimlikNatija").innerHTML = `
-        <div class="aniqlash-natija">
-          <p style="font-size:18px; font-weight:bold;">${natija.nom}</p>
-          <p>${natija.oila} • ✅ Aniqlandi: ${natija.aniqlik}%</p>
-          <p><b>💧 Sug'orish:</b> ${natija.sugorish}</p>
-          <p><b>☀️ Yorug'lik:</b> ${natija.yoruglik}</p>
-          <p><b>🌡️ Harorat:</b> ${natija.harorat}</p>
-          <p><b>💡 Maslahat:</b> ${natija.maslahat}</p>
-        </div>
-      `;
+      const loading = document.getElementById("osimlikLoading");
+      const natijaBox = document.getElementById("osimlikNatija");
+
+      loading.style.display = "block";
+      natijaBox.innerHTML = "";
+
+      const formData = new FormData();
+      formData.append("file", fayl);
+
+      const clientKey = localStorage.getItem("NIHOLA_GEMINI_KEY") || "";
+      const headers = {};
+      if (clientKey) {
+        headers["X-Gemini-Key"] = clientKey;
+      }
+
+      try {
+        const resp = await fetch("/api/identify", {
+          method: "POST",
+          headers: headers,
+          body: formData
+        });
+
+        if (!resp.ok) {
+          throw new Error("Server xatosi: " + resp.status);
+        }
+
+        const data = await resp.json();
+
+        natijaBox.innerHTML = `
+          <div class="aniqlash-natija">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-size:18px; font-weight:bold; color:var(--asosiy-rang);">${data.nom || "O'simlik"}</span>
+              <span style="font-size:12px; background:#fff; padding:4px 8px; border-radius:12px; border:1px solid #ddd;">
+                ${data.source || "NiholAI"}
+              </span>
+            </div>
+            <p style="margin:4px 0;"><b>Oilasi:</b> ${data.oila || "Aniqlanmadi"} &bull; <b>✅ Aniqlandi:</b> ${data.aniqlik || 95}%</p>
+            <p style="margin:6px 0;"><b>💧 Sug'orish:</b> ${data.sugorish || "Me'yorida"}</p>
+            <p style="margin:6px 0;"><b>☀️ Yorug'lik:</b> ${data.yoruglik || "Yetarli darajada"}</p>
+            <p style="margin:6px 0;"><b>🌡️ Harorat:</b> ${data.harorat || "Mo'tadil"}</p>
+            <p style="margin:8px 0 0 0; border-top:1px dashed #A5D6A7; padding-top:6px;"><b>💡 Parvarish maslahati:</b> ${data.maslahat || "Vaqtida sug'oring va parvarish qiling."}</p>
+          </div>
+        `;
+      } catch (err) {
+        natijaBox.innerHTML = `
+          <div style="background:#FFEBEE; color:#C62828; padding:15px; border-radius:8px; margin-top:15px;">
+            ❌ Xatolik yuz berdi: ${err.message}
+          </div>
+        `;
+      } finally {
+        loading.style.display = "none";
+      }
     }
+
+    // SAHIFA YUKLANGANDA
+    tekshirStatus();
   </script>
 </body>
 </html>
