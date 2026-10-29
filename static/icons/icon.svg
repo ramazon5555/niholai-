@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4CAF50" />
+      <stop offset="100%" stop-color="#1B5E20" />
+    </linearGradient>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2E7D32" />
+      <stop offset="100%" stop-color="#0A3D11" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <!-- Background rounded rect -->
+  <rect width="512" height="512" rx="120" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle circular pulse ring for AI -->
+  <circle cx="256" cy="256" r="190" fill="none" stroke="#81C784" stroke-width="4" stroke-opacity="0.3" stroke-dasharray="16 12"/>
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#C8E6C9" stroke-width="2" stroke-opacity="0.4"/>
+
+  <!-- Plant Sprout (Nihol) -->
+  <g filter="url(#shadow)">
+    <!-- Main stem -->
+    <path d="M 256 390 C 256 290 256 210 256 160" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round" fill="none"/>
+    <!-- Left Leaf -->
+    <path d="M 256 280 C 180 270 140 210 160 140 C 220 150 250 210 256 280 Z" fill="#81C784"/>
+    <path d="M 256 280 C 200 240 180 190 160 140" stroke="#2E7D32" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <!-- Right Leaf -->
+    <path d="M 256 220 C 332 210 372 150 352 80 C 292 90 262 150 256 220 Z" fill="#A5D6A7"/>
+    <path d="M 256 220 C 312 180 332 130 352 80" stroke="#2E7D32" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <!-- Center bud / sprout tip -->
+    <circle cx="256" cy="155" r="12" fill="#E8F5E9"/>
+  </g>
+  
+  <!-- Digital AI Tech Dots -->
+  <circle cx="160" cy="140" r="10" fill="#FFF" opacity="0.9"/>
+  <circle cx="352" cy="80" r="10" fill="#FFF" opacity="0.9"/>
+  <circle cx="256" cy="390" r="10" fill="#FFF" opacity="0.9"/>
+  <!-- Connecting circuit lines -->
+  <line x1="160" y1="140" x2="130" y2="120" stroke="#C8E6C9" stroke-width="3" opacity="0.6"/>
+  <line x1="352" y1="80" x2="382" y2="60" stroke="#C8E6C9" stroke-width="3" opacity="0.6"/>
+</svg>

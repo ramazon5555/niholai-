@@ -23,7 +23,7 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 
 # Server sozlamalari
 API_HOST = os.getenv("API_HOST", "0.0.0.0")
-API_PORT = int(os.getenv("API_PORT", 8000))
+API_PORT = int(os.getenv("PORT", os.getenv("API_PORT", 8000)))
 
 # Saqlash kataloglari
 UPLOAD_DIR = BASE_DIR / "uploads"

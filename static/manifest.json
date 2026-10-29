@@ -1,0 +1,61 @@
+{
+  "name": "NiholAI — Aqlli O'simliklar Diagnostikasi",
+  "short_name": "NiholAI",
+  "description": "Barg orqali o'simlik kasalliklarini aniqlash, tavsiya etilgan dorilar, agro-aptekalar manzillari va hosil kalkulyatori",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#EBF5E9",
+  "theme_color": "#2E7D32",
+  "icons": [
+    {
+      "src": "/static/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Sog'liqni tekshirish",
+      "short_name": "Diagnostika",
+      "description": "Barg kasalligini aniqlash va dori topish",
+      "url": "/?tab=sogliq",
+      "icons": [{ "src": "/static/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "O'simlikni aniqlash",
+      "short_name": "Botanik AI",
+      "description": "O'simlik turini suratdan aniqlash",
+      "url": "/?tab=aniqlash",
+      "icons": [{ "src": "/static/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Agro-Aptekalar",
+      "short_name": "Aptekalar",
+      "description": "Eng yaqin dori do'konlari va kontaktlar",
+      "url": "/?tab=aptekalar",
+      "icons": [{ "src": "/static/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Fermer kalkulyatori",
+      "short_name": "Kalkulyator",
+      "description": "Hosil va daromad hisoblash",
+      "url": "/?tab=fermer",
+      "icons": [{ "src": "/static/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

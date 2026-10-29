@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-Nihol AI - Telegram Bot integratsiyasi.
+Nihol AI - Telegram Bot & Telegram Mini App integratsiyasi.
 Fermerlar va foydalanuvchilar o'simlik bargining rasmini yuborganlarida,
-AI uni tahlil qilib, o'zbek tilida to'liq hisobot va davolash tavsiyalarini qaytaradi.
+AI uni tahlil qilib, dori vositalari, davolash choralari va eng yaqin agro-aptekalar
+haqida to'liq hisobot beradi. Shuningdek, Telegram ichida to'liq Mini App (Web App) ochiladi!
 """
 
 import asyncio
@@ -14,6 +15,7 @@ try:
     from aiogram import Bot, Dispatcher, types, F
     from aiogram.filters import Command
     from aiogram.enums import ParseMode
+    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 except ImportError:
     print("[!] 'aiogram' kutubxonasi topilmadi. O'rnatish uchun:")
     print("    pip install aiogram")
@@ -21,10 +23,13 @@ except ImportError:
 
 from config import TELEGRAM_BOT_TOKEN, UPLOAD_DIR
 from detector import PlantDiseaseDetector
+from pharmacies import get_medicines_for_diagnosis, get_pharmacies
 
 if not TELEGRAM_BOT_TOKEN:
     print("[!] DIQQAT: TELEGRAM_BOT_TOKEN o'rnatilmagan.")
     print("    Eksport qiling: export TELEGRAM_BOT_TOKEN='bot_tokeningiz'")
+
+WEBAPP_URL = os.getenv("WEBAPP_URL", "http://localhost:8000")
 
 bot = Bot(token=TELEGRAM_BOT_TOKEN or "DUMMY_TOKEN")
 dp = Dispatcher()
@@ -32,6 +37,17 @@ detector = PlantDiseaseDetector()
 
 # Har bir foydalanuvchining shaxsiy API kalitini saqlash xotirasi
 user_keys: dict[int, str] = {}
+
+
+def get_main_keyboard():
+    buttons = [
+        [InlineKeyboardButton(text="📱 NiholAI Mobil Ilovasini Ochish", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [
+            InlineKeyboardButton(text="💊 Agro-Aptekalar", callback_data="show_pharmacies"),
+            InlineKeyboardButton(text="🚜 Hosil Kalkulyatori", callback_data="show_calc"),
+        ],
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
 @dp.message(Command("start"))
@@ -43,15 +59,48 @@ async def start_handler(message: types.Message):
         "🌿 **Assalomu alaykum! Men Nihol AI agro-yordamchisiman.**\n\n"
         f"📡 **Joriy holat:** `{mode_text}`\n\n"
         "Men o'simlik va ko'chatlar (nihollar) holatini fotosurat orqali tahlil qilaman:\n"
-        "• Kasallik va zararkunandalarni aniqlash\n"
-        "• O'simlikning sog'lomlik darajasi\n"
-        "• Agronomik davolash choralari va profilaktika\n\n"
-        "💡 *Maslahat:*\n"
-        "• Jonli Gemini AI kalitini kiritish uchun: `/key AIzaSy...`\n"
-        "• Kalitsiz holatda ham offline andoza bazasi to'liq ishlaydi.\n\n"
+        "• 📷 Kasallik va zararkunandalarni aniqlash\n"
+        "• 💊 Samarali dori vositalari (preparatlar va dozalari)\n"
+        "• 🏪 O'zbekiston viloyatlari bo'yicha Agro-Aptekalar manzillari\n"
+        "• 🚜 Ekinlar hosildorligi va daromadini hisoblash\n\n"
+        "📱 Quyidagi tugma orqali NiholAI mobil ilovasini to'g'ridan-to'g'ri Telegram ichida ochishingiz mumkin!\n\n"
         "📸 **Tahlil qilish uchun barg yoki nihol fotosuratini yuboring!**",
         parse_mode=ParseMode.MARKDOWN,
+        reply_markup=get_main_keyboard(),
     )
+
+
+@dp.message(Command("app"))
+async def app_command_handler(message: types.Message):
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text="🌱 NiholAI Mobil Ilovasini Ochish", web_app=WebAppInfo(url=WEBAPP_URL))]]
+    )
+    await message.answer(
+        "🌿 **NiholAI Mobil Ilovasi:**\nKamera skaneri, ovozli agronom va agro-aptekalar bilan to'liq foydalanish uchun tugmani bosing:",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+
+@dp.message(Command("aptekalar"))
+async def pharmacies_command(message: types.Message):
+    parts = message.text.strip().split(maxsplit=1)
+    region = parts[1].strip() if len(parts) > 1 else ""
+    pharmacies = get_pharmacies(region=region)[:5]
+
+    if not pharmacies:
+        await message.answer("Bunday hudud bo'yicha apteka topilmadi. Masalan: `/aptekalar Toshkent`", parse_mode=ParseMode.MARKDOWN)
+        return
+
+    text = "🏪 **Agro-Aptekalar va O'simliklar Himoyasi Do'konlari:**\n\n"
+    for p in pharmacies:
+        text += f"🏢 **{p['name']}** ({p['region']}, {p['district']})\n"
+        text += f"📍 Manzil: {p['address']}\n"
+        text += f"📞 Tel: {p['phone']}\n"
+        text += f"🕒 Ish vaqti: {p['working_hours']}\n"
+        text += f"🔗 [Xaritada ko'rish]({p['map_url']})\n\n"
+
+    await message.answer(text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
 
 @dp.message(Command("key"))
@@ -93,6 +142,18 @@ async def photo_handler(message: types.Message):
     treatments_text = "\n".join([f"• {t}" for t in res.get("treatment", [])])
     prevention_text = "\n".join([f"• {p}" for p in res.get("prevention", [])])
 
+    medicines = res.get("medicines") or get_medicines_for_diagnosis(
+        res.get("disease_name", ""), res.get("plant_name", ""), res.get("status", "")
+    )
+    medicines_text = ""
+    for m in medicines[:3]:
+        medicines_text += f"\n💊 **{m.get('name')}** ({m.get('type')})\n"
+        medicines_text += f"   • Doza: {m.get('dosage')}\n"
+        if m.get("price_range"):
+            medicines_text += f"   • Narxi: ~{m.get('price_range')}\n"
+        if m.get("instruction"):
+            medicines_text += f"   • Usul: {m.get('instruction')}\n"
+
     response_text = (
         f"🌱 **O'simlik turi:** {res.get('plant_name', 'Aniqlanmadi')}\n"
         f"{status_icon} **Holati:** {res.get('status', 'Nomaʼlum')}\n"
@@ -101,12 +162,43 @@ async def photo_handler(message: types.Message):
         f"⚠️ **Xavflilik:** {res.get('severity', 'Oʻrtacha')}\n"
         f"🏷 **Manba:** {res.get('source', '')}\n\n"
         f"🔍 **Alomatlar:**\n{res.get('symptoms', 'Keltirilmadi')}\n\n"
-        f"💊 **Davolash choralari:**\n{treatments_text}\n\n"
+        f"💊 **Tavsiya etiladigan dori vositalari:**{medicines_text}\n\n"
         f"🛡 **Profilaktika:**\n{prevention_text}"
     )
 
+    action_keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="📱 Mobil Ilovada Ko'rish", web_app=WebAppInfo(url=WEBAPP_URL))],
+            [InlineKeyboardButton(text="🏪 Eng Yaqin Agro-Aptekalar", callback_data="show_pharmacies")],
+        ]
+    )
+
     await wait_msg.delete()
-    await message.answer(response_text, parse_mode=ParseMode.MARKDOWN)
+    await message.answer(response_text, parse_mode=ParseMode.MARKDOWN, reply_markup=action_keyboard)
+
+
+@dp.callback_query(F.data == "show_pharmacies")
+async def cb_pharmacies(query: types.CallbackQuery):
+    pharmacies = get_pharmacies()[:4]
+    text = "🏪 **Agro-Aptekalar (Toshkent va viloyatlar):**\n\n"
+    for p in pharmacies:
+        text += f"🏢 **{p['name']}**\n📍 {p['address']} ({p['region']})\n📞 Tel: {p['phone']}\n🔗 [Xarita]({p['map_url']})\n\n"
+    await query.message.answer(text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+    await query.answer()
+
+
+@dp.callback_query(F.data == "show_calc")
+async def cb_calc(query: types.CallbackQuery):
+    await query.message.answer(
+        "🚜 **Hosil va daromad kalkulyatori:**\n"
+        "Mobil ilovamizda barcha 14 ta hudud bo'yicha ekin hosilini hisoblashingiz mumkin!\n"
+        "Ilovani ochish uchun quyidagi tugmani bosing:",
+        reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[[InlineKeyboardButton(text="🌱 Kalkulyatorni Ochish", web_app=WebAppInfo(url=f"{WEBAPP_URL}/?tab=fermer"))]]
+        ),
+        parse_mode=ParseMode.MARKDOWN,
+    )
+    await query.answer()
 
 
 async def main():

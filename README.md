@@ -8,27 +8,31 @@ Loyiha **HCI (Inson-Kompyuter Muloqoti)** fani doirasida qulay va zamonaviy foyd
 
 ## 🚀 Asosiy Imkoniyatlar
 
-1. **📷 O'simliklarni Aniqlash (Botanik AI):**
-   - O'simlik yoki xona guli fotosurati yuklanganda, uning turi, botanik oilasi, sug'orish tartibi, yorug'lik va harorat talablarini bir zumda aniqlaydi.
+1. **📱 Mobil Ilova (PWA & Telegram Mini App):**
+   - Mobil qurilmalarga 100% moslashgan interfeys, pastki boshqaruv paneli (Bottom Navigation Bar), oflayn rejim va to'g'ridan-to'g'ri telefonga o'rnatish imkoniyati.
+   - Telegram bot ichida to'liq ochiluvchi zamonaviy Telegram Mini App (TMA).
 
-2. **🩺 Sog'liqni Tekshirish (Kasalliklar Diagnostikasi):**
-   - Zararlangan barg yoki ko'chat suratini chuqur tahlil qilib:
-     - Sog'lomlik darajasi (Sog'lom / Kasallangan)
-     - Kasallik yoki zararkunanda aniq nomi
-     - Vizual alomatlar va yuzaga kelish sabablari
-     - Amaliy agrotexnik, biologik va kimyoviy davolash choralari (preparatlar va dozalari)
-     - Kelgusida ushbu kasallikning oldini olish (profilaktika) choralarini taqdim etadi.
+2. **📸 Jonli Kamera Skaneri (Real-time Viewfinder):**
+   - Telefon kamerasidan to'g'ridan-to'g'ri barg va ko'chatlarni skanerlash, lazerli skaner animatsiyasi va tezkor suratga olish.
 
-3. **🚜 Fermer Rejimi (Hosil va Daromad Kalkulyatori):**
-   - O'zbekistonning barcha 14 ta hududi (viloyatlar, Toshkent shahri va Qoraqalpog'iston Respublikasi) iqlim koeffitsientlariga asoslangan holda ekinlar (Pomidor, Bodring, Kartoshka, Piyoz) bo'yicha past, o'rtacha va yuqori hosil hamda daromadni hisoblaydi.
+3. **💊 Dori Vositalari (Preparatlar) Tavsiyasi:**
+   - Aniqlangan har bir kasallik uchun amaliy fungitsidlar, insektitsidlar, faol moddasi, 10 litr suvga dozasi, ishlatish muddati va taxminiy bozor narxlari.
 
-4. **⚡ Ikki Bosqichli AI Arxitekturasi:**
-   - **🟢 Jonli AI Rejimi (Google Gemini Vision):** Har qanday fotosurat bo'yicha 100% real vaqtli chuqur agronomik tahlil.
-   - **🟡 Offline Agro-Baza:** Internet yoki API kalit bo'lmagan sharoitda ham O'zbekistonda eng ko'p uchraydigan ekin kasalliklari bo'yicha mustaqil ishlay oladi.
+4. **🏪 O'zbekiston Bo'yicha Agro-Aptekalar Bazasi:**
+   - 14 ta hudud bo'yicha agro-aptekalar va o'simliklarni himoya qilish markazlari manzili, telefon raqamlari (bitta bosish bilan qo'ng'iroq) va xaritalardagi lokatsiyasi.
 
-5. **🤖 Telegram Bot va Terminal (CLI):**
-   - Dala sharoitida fermerlar to'g'ridan-to'g'ri Telegram orqali barg rasmini yuborib javob olishlari uchun `bot.py` moduli.
-   - Dasturchilar va server ma'murlari uchun rangli `cli.py` vositasi.
+5. **🎙️ Ovozli Agronom (Audio Xulosa):**
+   - Daladagi fermerlar uchun tashxis, sabab va davolash choralarini o'zbek tilida ovoz chiqarib o'qib berish.
+
+6. **📜 Tahlillar Tarixi (Oflayn Xotira):**
+   - O'tkazilgan barcha tekshiruvlar avtomatik saqlanib boradi va internet bo'lmaganda ham qayta ko'rish mumkin.
+
+7. **🚜 Fermer Kalkulyatori:**
+   - O'zbekiston viloyatlari iqlim koeffitsientlariga asoslangan holda ekinlar (Pomidor, Bodring, Kartoshka, Piyoz) bo'yicha hosil va daromad hisob-kitobi.
+
+8. **⚡ Universal Jonli Gemini AI (Barcha foydalanuvchilar uchun):**
+   - Ilovada Master API kaliti va gibrid bulut arxitekturasi o'rnatilgan. NiholAI ilovasini boshqa odamlar (do'stlaringiz, mijozlar, testerlar) o'z telefonlarida yoki kompyuterlarida ochganlarida ham sizning API kalitingiz orqali **100% online rejimda** (`🟢 Jonli AI`) ishlaydi.
+   - Hech kim qo'shimcha server o'rnatishi yoki API kalit kiritishi shart emas — barchaga bir xil eng yuqori sifatli jonli tahlil taqdim etiladi.
 
 ---
 
@@ -36,14 +40,19 @@ Loyiha **HCI (Inson-Kompyuter Muloqoti)** fani doirasida qulay va zamonaviy foyd
 
 ```text
 NiholAI/
-├── index.html          # Zamonaviy veb interfeys (Bosh sahifa, Aniqlash, Sog'liq, Fermer)
-├── server.py           # FastAPI asosiy veb-serveri (API va HTML yetkazib berish)
+├── index.html          # Mobil PWA interfeysi (Bottom Nav, Kamera, Aptekalar, Audio)
+├── server.py           # FastAPI serveri (PWA, API, Dori vositalari va Aptekalar)
 ├── detector.py         # AI diagnostika yadrosi (Gemini Vision + Offline Agro-Baza)
+├── pharmacies.py       # O'zbekiston agro-aptekalari va dori vositalari bazasi
 ├── config.py           # Konfiguratsiya va sozlamalar
 ├── .env                # Muhit o'zgaruvchilari (API kalitlar)
-├── bot.py              # Fermerlar uchun Telegram bot integratsiyasi
+├── bot.py              # Telegram Bot va Mini App integratsiyasi
 ├── cli.py              # Terminal orqali rasmni tekshirish vositasi
+├── build_apk.sh        # Android APK yig'ish skripti (Capacitor)
+├── capacitor.config.json # Capacitor sozlamalari
+├── MOBILE_GUIDE.md     # Mobil ilova bo'yicha to'liq qo'llanma
 ├── requirements.txt    # Kerakli Python kutubxonalari
+├── static/             # PWA aktivlari (manifest.json, sw.js, ikonkalar)
 └── uploads/            # Tahlil qilingan fotosuratlar saqlanadigan papka
 ```
 

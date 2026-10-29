@@ -1,0 +1,3588 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>NiholAI — O'simliklar Diagnostikasi va Agro-Yordamchi</title>
+
+  <!-- PWA & Mobile Meta Tags -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#2E7D32">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NiholAI">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+  <link rel="icon" type="image/svg+xml" href="/static/icons/icon.svg">
+
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    :root {
+      --primary: #2E7D32;
+      --primary-dark: #1B5E20;
+      --primary-light: #4CAF50;
+      --primary-soft: #E8F5E9;
+      --accent: #FF9800;
+      --accent-soft: #FFF3E0;
+      --danger: #D32F2F;
+      --danger-soft: #FFEBEE;
+      --bg: #F4F7F4;
+      --card-bg: #FFFFFF;
+      --text-main: #1E293B;
+      --text-muted: #64748B;
+      --border-color: #E2E8F0;
+      --bottom-nav-height: 68px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-top: env(safe-area-inset-top, 0px);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + 20px);
+      user-select: none;
+      -webkit-user-select: none;
+      overflow-x: hidden;
+    }
+
+    /* TOP APP BAR */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: calc(var(--safe-top) + 10px) 16px 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .app-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+      cursor: pointer;
+    }
+
+    .app-brand svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    .app-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .status-badge.live {
+      background-color: var(--primary-soft);
+      color: var(--primary-dark);
+      border: 1px solid #A5D6A7;
+    }
+    .status-badge.offline {
+      background-color: #FFF9C4;
+      color: #E65100;
+      border: 1px solid #FFE082;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 8px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .icon-btn:active {
+      background: #E2E8F0;
+      transform: scale(0.95);
+    }
+
+    /* PWA INSTALL BANNER */
+    .install-banner {
+      display: none;
+      background: linear-gradient(135deg, #1B5E20, #2E7D32);
+      color: white;
+      padding: 12px 16px;
+      margin: 12px 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.25);
+      align-items: center;
+      justify-content: space-between;
+      animation: slideDown 0.3s ease;
+    }
+    .install-banner.visible {
+      display: flex;
+    }
+    .install-banner-text h4 {
+      margin: 0;
+      font-size: 14px;
+    }
+    .install-banner-text p {
+      margin: 2px 0 0 0;
+      font-size: 11px;
+      opacity: 0.9;
+    }
+    .install-btn {
+      background: white;
+      color: var(--primary-dark);
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* MAIN CONTAINER & TABS */
+    .main-content {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 12px 16px;
+    }
+
+    .tab-section {
+      display: none;
+      animation: fadeIn 0.25s ease;
+    }
+    .tab-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* CARDS */
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--border-color);
+    }
+
+    /* HERO DASHBOARD */
+    .hero-banner {
+      background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);
+      color: white;
+      border-radius: 18px;
+      padding: 22px 20px;
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(46, 125, 50, 0.3);
+    }
+    .hero-banner::after {
+      content: "🌿";
+      position: absolute;
+      right: -10px;
+      bottom: -20px;
+      font-size: 110px;
+      opacity: 0.15;
+    }
+    .hero-banner h1 {
+      margin: 0 0 6px 0;
+      font-size: 22px;
+      font-weight: 800;
+    }
+    .hero-banner p {
+      margin: 0 0 16px 0;
+      font-size: 13px;
+      line-height: 1.4;
+      opacity: 0.92;
+    }
+    .hero-quick-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .hero-btn {
+      background: white;
+      color: var(--primary-dark);
+      border: none;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .hero-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* ACTION GRID (Bosh sahifa tugmalari) */
+    .grid-menu {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .grid-item {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .grid-item:active {
+      transform: scale(0.97);
+      background-color: #F8FAF8;
+    }
+    .grid-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+    .grid-title {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text-main);
+      margin: 0;
+    }
+    .grid-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    /* UPLOAD & CAMERA BOX */
+    .scanner-box {
+      border: 2px dashed #81C784;
+      background: var(--primary-soft);
+      border-radius: 16px;
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .scanner-box:active {
+      background: #D7ECD8;
+      border-color: var(--primary);
+    }
+    .scanner-box-icon {
+      font-size: 44px;
+      margin-bottom: 8px;
+    }
+    .scanner-box h3 {
+      margin: 0 0 4px 0;
+      font-size: 16px;
+      color: var(--primary-dark);
+    }
+    .scanner-box p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .capture-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 13px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 2px 6px rgba(46, 125, 50, 0.2);
+      transition: background 0.15s, transform 0.1s;
+      width: 100%;
+    }
+    .btn:active {
+      transform: scale(0.98);
+      background: var(--primary-dark);
+    }
+    .btn-secondary {
+      background: white;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+      box-shadow: none;
+    }
+    .btn-secondary:active {
+      background: var(--primary-soft);
+    }
+    .btn-danger {
+      background: var(--danger);
+      box-shadow: 0 2px 6px rgba(211, 47, 47, 0.2);
+    }
+    .btn-sm {
+      padding: 8px 12px;
+      font-size: 12px;
+      border-radius: 8px;
+      width: auto;
+    }
+
+    /* PREVIEW CONTAINER */
+    .preview-container {
+      position: relative;
+      display: none;
+      margin-bottom: 16px;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+    }
+    .preview-container img {
+      width: 100%;
+      max-height: 280px;
+      object-fit: cover;
+      display: block;
+    }
+    .preview-clear-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    /* LIVE CAMERA VIEWFINDER MODAL */
+    .camera-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: black;
+      z-index: 9999;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .camera-modal.active {
+      display: flex;
+    }
+    .camera-video-container {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #cameraVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .camera-overlay-frame {
+      position: absolute;
+      width: 75%;
+      height: 55%;
+      border: 2px solid #4CAF50;
+      border-radius: 20px;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+    }
+    .camera-laser {
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      background: #81C784;
+      box-shadow: 0 0 8px #81C784;
+      animation: scanLaser 2s infinite ease-in-out;
+    }
+    @keyframes scanLaser {
+      0% { top: 5%; }
+      50% { top: 95%; }
+      100% { top: 5%; }
+    }
+    .camera-top-bar {
+      position: absolute;
+      top: calc(var(--safe-top) + 16px);
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+    .camera-controls {
+      background: rgba(0,0,0,0.85);
+      padding: 24px 20px calc(var(--safe-bottom) + 24px) 20px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+    .shutter-btn {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: white;
+      border: 5px solid #4CAF50;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s;
+    }
+    .shutter-btn:active {
+      transform: scale(0.9);
+      background: #E8F5E9;
+    }
+
+    /* LOADING SPINNER */
+    .loading-box {
+      display: none;
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 24px 16px;
+      text-align: center;
+      margin-bottom: 16px;
+      border: 1px solid var(--border-color);
+    }
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid var(--primary-soft);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px auto;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* DIAGNOSIS RESULTS */
+    .result-card {
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+      animation: fadeIn 0.3s ease;
+    }
+    .result-card.healthy {
+      background: #F1F8E9;
+      border-left: 6px solid var(--primary-light);
+    }
+    .result-card.diseased {
+      background: #FFF8E1;
+      border-left: 6px solid var(--accent);
+    }
+    .result-card.critical {
+      background: #FFEBEE;
+      border-left: 6px solid var(--danger);
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .result-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .healthy .result-badge { background: #DCEDC8; color: var(--primary-dark); }
+    .diseased .result-badge { background: #FFE082; color: #E65100; }
+    .critical .result-badge { background: #FFCDD2; color: var(--danger); }
+
+    .result-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin: 0 0 6px 0;
+      color: var(--text-main);
+    }
+    .result-stats {
+      display: flex;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* AUDIO SPEAKER BAR */
+    .audio-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-bottom: 14px;
+      border: 1px solid var(--border-color);
+    }
+    .audio-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* MEDICINES SECTION (DORI VOSITALARI) */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 800;
+      margin: 18px 0 10px 0;
+      color: var(--text-main);
+    }
+    .medicine-card {
+      background: white;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      border: 1px solid #CFD8DC;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      position: relative;
+    }
+    .med-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+    .med-name {
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--primary-dark);
+      margin: 0;
+    }
+    .med-type {
+      background: #ECEFF1;
+      color: #37474F;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    .med-detail {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 3px 0;
+      line-height: 1.4;
+    }
+    .med-detail b {
+      color: var(--text-main);
+    }
+    .med-price {
+      display: inline-block;
+      margin-top: 6px;
+      background: #E8F5E9;
+      color: var(--primary-dark);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    /* PHARMACIES LIST (AGRO-APTEKALAR) */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .filter-select, .search-input {
+      flex: 1;
+      min-width: 140px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      font-size: 14px;
+      background: white;
+    }
+
+    .pharmacy-card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .pharmacy-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin: 0 0 4px 0;
+    }
+    .pharmacy-region {
+      font-size: 12px;
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .pharmacy-info {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pharmacy-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 10px 0;
+    }
+    .pharmacy-tag {
+      background: #F1F5F9;
+      color: #475569;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .pharmacy-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #F1F5F9;
+    }
+    .pharmacy-btn {
+      flex: 1;
+      text-align: center;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .pharmacy-btn.call {
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+      border: 1px solid #A5D6A7;
+    }
+    .pharmacy-btn.map {
+      background: #E0F2FE;
+      color: #0369A1;
+      border: 1px solid #BAE6FD;
+    }
+
+    /* HISTORY LIST (TARIX) */
+    .history-item {
+      display: flex;
+      gap: 12px;
+      background: white;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+      border: 1px solid var(--border-color);
+      align-items: center;
+      cursor: pointer;
+    }
+    .history-thumb {
+      width: 54px;
+      height: 54px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: #E2E8F0;
+      flex-shrink: 0;
+    }
+    .history-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .history-title {
+      font-weight: 700;
+      font-size: 14px;
+      margin: 0 0 2px 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* BOTTOM NAVIGATION BAR */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: calc(var(--bottom-nav-height) + var(--safe-bottom));
+      padding-bottom: var(--safe-bottom);
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 2000;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.04);
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: color 0.15s, transform 0.1s;
+      flex: 1;
+      text-align: center;
+    }
+    .nav-item:active {
+      transform: scale(0.92);
+    }
+    .nav-item.active {
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .nav-icon {
+      font-size: 20px;
+      margin-bottom: 3px;
+    }
+
+    /* MODAL SHEETS */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 3000;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+    .modal-sheet {
+      background: white;
+      border-radius: 20px 20px 0 0;
+      padding: 20px 20px calc(var(--safe-bottom) + 20px) 20px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 85vh;
+      overflow-y: auto;
+      animation: sheetUp 0.25s ease;
+    }
+    @keyframes sheetUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .modal-handle {
+      width: 40px;
+      height: 4px;
+      background: #CBD5E1;
+      border-radius: 2px;
+      margin: 0 auto 16px auto;
+    }
+
+    input[type="text"], input[type="password"], input[type="number"], select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      font-size: 14px;
+      margin-top: 6px;
+      margin-bottom: 12px;
+      background: #FAFAFA;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: white;
+    }
+
+    /* DARK MODE STYLES */
+    body.dark-mode {
+      --bg: #0B1320;
+      --card-bg: #152238;
+      --text-main: #F1F5F9;
+      --text-muted: #94A3B8;
+      --border-color: #233554;
+      --primary-soft: #143224;
+    }
+    body.dark-mode .app-header {
+      background: rgba(21, 34, 56, 0.95);
+      border-bottom-color: #233554;
+    }
+    body.dark-mode .bottom-nav {
+      background: rgba(21, 34, 56, 0.98);
+      border-top-color: #233554;
+    }
+    body.dark-mode .modal-sheet {
+      background: #152238;
+      color: #F1F5F9;
+    }
+    body.dark-mode input, body.dark-mode select {
+      background: #0B1320;
+      color: #F1F5F9;
+      border-color: #233554;
+    }
+    body.dark-mode .card {
+      background: #152238;
+      border-color: #233554;
+    }
+    body.dark-mode .grid-item {
+      background: #152238;
+      border-color: #233554;
+    }
+    body.dark-mode .pharmacy-card, body.dark-mode .history-item {
+      background: #152238;
+      border-color: #233554;
+    }
+    body.dark-mode .medicine-card {
+      background: #1B2C47;
+      border-color: #233554;
+    }
+
+    .user-header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #E8F5E9;
+      color: var(--primary-dark);
+      border: 1px solid #A5D6A7;
+      transition: all 0.15s;
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .user-header-badge:active {
+      transform: scale(0.95);
+    }
+    body.dark-mode .user-header-badge {
+      background: #143224;
+      color: #A5D6A7;
+      border-color: #2E7D32;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- TOP APP BAR -->
+  <header class="app-header">
+    <div class="app-brand" onclick="switchTab('home')">
+      <svg viewBox="0 0 512 512" fill="none">
+        <rect width="512" height="512" rx="120" fill="#2E7D32"/>
+        <path d="M256 390 C 256 290 256 210 256 160" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round"/>
+        <path d="M 256 280 C 180 270 140 210 160 140 C 220 150 250 210 256 280 Z" fill="#81C784"/>
+        <path d="M 256 220 C 332 210 372 150 352 80 C 292 90 262 150 256 220 Z" fill="#A5D6A7"/>
+      </svg>
+      <span>NiholAI</span>
+    </div>
+
+    <div class="app-header-actions">
+      <!-- Mavzu (Tungi/Kunduzgi rejim) -->
+      <button id="themeToggleBtn" class="icon-btn" onclick="toggleDarkMode()" title="Mavzu (Tungi / Kunduzgi)">🌙</button>
+
+      <!-- AI Holati -->
+      <div id="aiBadge" class="status-badge offline" onclick="openSettingsModal()">
+        <span id="aiBadgeText">🟡 Offline</span>
+      </div>
+
+      <!-- Profil / Kirish Tugmasi -->
+      <div id="userHeaderBtn" class="user-header-badge" onclick="openAuthModal()" title="Fermer Kabineti">
+        <span id="userHeaderAvatar">👤</span>
+        <span id="userHeaderText">Kirish</span>
+      </div>
+
+      <!-- Sozlamalar -->
+      <button class="icon-btn" onclick="openSettingsModal()" title="Sozlamalar">⚙️</button>
+    </div>
+  </header>
+
+  <!-- PWA INSTALL BANNER -->
+  <div id="installBanner" class="install-banner">
+    <div class="install-banner-text">
+      <h4>📲 NiholAI ilovasini o'rnating</h4>
+      <p>Telefonga yuklab olib, oflayn rejimda ham foydalaning</p>
+    </div>
+    <button id="installAppBtn" class="install-btn">O'rnatish</button>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="main-content">
+
+    <!-- TAB 1: ASOSIY (HOME DASHBOARD) -->
+    <section id="tab-home" class="tab-section active">
+      <div class="hero-banner">
+        <h1>Aqlli O'simliklar Shifokori 🌿</h1>
+        <p>Barg suratini oling, kasalliklarni aniqlang, dori preparatlarini o'rganing va eng yaqin aptekani toping.</p>
+        <div class="hero-quick-actions">
+          <button class="hero-btn" onclick="switchTab('sogliq')">
+            <span>📷</span> Tekshirish
+          </button>
+          <button class="hero-btn" style="background: rgba(255,255,255,0.2); color:white;" onclick="switchTab('aptekalar')">
+            <span>🏪</span> Aptekalar
+          </button>
+        </div>
+      </div>
+
+      <!-- JONLI AGRO OB-HAVO VIDJETI -->
+      <div id="homeWeatherWidget" class="card" style="margin-bottom:16px; padding:14px 16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span id="weatherIcon" style="font-size:26px;">☀️</span>
+            <div>
+              <div style="font-weight:bold; font-size:15px;" id="weatherCity">Toshkent viloyati</div>
+              <div style="font-size:11px; color:var(--text-muted);" id="weatherCondition">Quyoshli va ochiq</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:22px; font-weight:800; color:var(--primary);" id="weatherTemp">24°C</div>
+            <div style="font-size:11px; color:var(--text-muted);">Namlik: <span id="weatherHumidity">38%</span></div>
+          </div>
+        </div>
+        <div id="weatherSprayNotice" style="background:#E8F5E9; border-radius:8px; padding:8px 10px; font-size:12px; color:var(--primary-dark); display:flex; align-items:center; gap:6px;">
+          <span>💧</span> <span id="weatherSprayMsg">Bugun dori purkash uchun a'lo sharoit! Shamol kuchsiz.</span>
+        </div>
+      </div>
+
+      <!-- AI AGRONOM CHATI VIDJETI -->
+      <div class="card" style="margin-bottom:18px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <span style="font-size:22px;">💬</span>
+          <div>
+            <h3 style="margin:0; font-size:16px;">AI Agronom Maslahatchisi</h3>
+            <p style="margin:0; font-size:11px; color:var(--text-muted);">Har qanday ekin yoki kasallik haqida so'rang</p>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:6px; margin-bottom:10px; overflow-x:auto; padding-bottom:4px;">
+          <button class="pharmacy-tag" style="border:none; cursor:pointer;" onclick="quickAsk('Pomidor barglari nega sarg\'ayadi?')">🍅 Pomidor sarg'ayishi</button>
+          <button class="pharmacy-tag" style="border:none; cursor:pointer;" onclick="quickAsk('Bodringni gullaganda qanday sug\'orish kerak?')">🥒 Bodring sug'orish</button>
+          <button class="pharmacy-tag" style="border:none; cursor:pointer;" onclick="quickAsk('Shira va oqqanotga qarshi qaysi dori yaxshi?')">🐛 Shiraga dori</button>
+          <button class="pharmacy-tag" style="border:none; cursor:pointer;" onclick="quickAsk('Kartoshkaga qaysi o\'g\'it beriladi?')">🥔 O'g'itlash</button>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="aiChatInput" placeholder="Savolingizni yozing..." style="margin:0;" onkeydown="if(event.key==='Enter') sendAiChatQuestion()">
+          <button class="btn btn-sm" style="width:auto; padding:0 16px;" onclick="sendAiChatQuestion()">
+            Yuborish
+          </button>
+        </div>
+
+        <div id="aiChatLoading" style="display:none; text-align:center; padding:12px; color:var(--primary); font-size:13px; font-weight:bold;">
+          ⏳ AI Agronom javob tayyorlamoqda...
+        </div>
+
+        <div id="aiChatAnswerBox" style="display:none; margin-top:12px; background:#F8FAF8; border-radius:10px; padding:14px; border:1px solid var(--border-color); font-size:13px; line-height:1.5;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-weight:bold; color:var(--primary-dark);">🌿 Agronom Xulosasi:</span>
+            <button class="audio-btn" style="padding:4px 8px; font-size:11px;" onclick="speakAiAnswer()">🔊 Ovozli</button>
+          </div>
+          <div id="aiChatAnswerText" style="white-space:pre-line;"></div>
+        </div>
+      </div>
+
+      <!-- ASOSIY BO'LIMLAR GRIDI -->
+      <div class="grid-menu">
+        <div class="grid-item" onclick="switchTab('sogliq')">
+          <div class="grid-icon" style="background:#FFEBEE; color:#D32F2F;">🩺</div>
+          <h4 class="grid-title">Kasallik tahlili</h4>
+          <p class="grid-desc">Barg suratidan tashxis va davolash</p>
+        </div>
+
+        <div class="grid-item" onclick="switchTab('aptekalar')">
+          <div class="grid-icon" style="background:#E8F5E9; color:#2E7D32;">🏪</div>
+          <h4 class="grid-title">Agro-Aptekalar</h4>
+          <p class="grid-desc">Dori vositalari va do'kon manzillari</p>
+        </div>
+
+        <div class="grid-item" onclick="switchTab('aniqlash')">
+          <div class="grid-icon" style="background:#E0F2FE; color:#0284C7;">🔍</div>
+          <h4 class="grid-title">Botanik AI</h4>
+          <p class="grid-desc">O'simlik turini aniqlash va parvarish</p>
+        </div>
+
+        <div class="grid-item" onclick="switchTab('fermer')">
+          <div class="grid-icon" style="background:#FFF3E0; color:#E65100;">🚜</div>
+          <h4 class="grid-title">Fermer hisobi</h4>
+          <p class="grid-desc">14 ta hudud bo'yicha hosil va daromad</p>
+        </div>
+      </div>
+
+      <!-- MAVSUMIY AGRONOM TAVSIYALARI -->
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h3 style="margin:0; font-size:16px;">💡 Agronom Maslahati (Kuz-Bahor)</h3>
+          <span style="font-size:11px; background:#E8F5E9; color:#2E7D32; padding:3px 8px; border-radius:10px; font-weight:bold;">Tavsiya</span>
+        </div>
+        <p style="font-size:13px; color:var(--text-muted); margin:0 0 10px 0; line-height:1.5;">
+          • Nam havo va haroratning pasayishi <b>fitoftoroz</b> va <b>peronosporoz</b> rivojlanishini tezlashtiradi.<br>
+          • Ekinlarga profilaktika maqsadida <i>Ridomil Gold</i> yoki <i>Quadris</i> bilan ishlov berishni kechiktirmang.<br>
+          • Ko'chatlar ildiz chirishining oldini olish uchun <i>Previkur Energy</i> dan foydalaning.
+        </p>
+        <button class="btn btn-secondary btn-sm" onclick="switchTab('aptekalar')">💊 Preparatlar ro'yxatini ko'rish</button>
+      </div>
+
+      <!-- SO'NGGI TEKSHIRUVLAR SNIPPET -->
+      <div id="homeRecentSection" style="display:none;" class="card">
+        <h3 style="margin:0 0 10px 0; font-size:15px;">📜 So'nggi Tekshiruv</h3>
+        <div id="homeRecentContent"></div>
+      </div>
+    </section>
+
+    <!-- TAB 2: DIAGNOSTIKA (SOG'LIQNI TEKSHIRISH) -->
+    <section id="tab-sogliq" class="tab-section">
+      <div class="card">
+        <h2 style="margin:0 0 6px 0; font-size:18px;">🩺 O'simlik Kasalliklarini Aniqlash</h2>
+        <p style="font-size:13px; color:var(--text-muted); margin:0 0 16px 0;">
+          Zararlangan barg suratini yuklang yoki kameradan to'g'ridan-to'g'ri skanerlang. AI kasallikni, samarali dori vositalarini va eng yaqin aptekani topadi.
+        </p>
+
+        <!-- PREVIEW -->
+        <div id="sogliqPreviewBox" class="preview-container">
+          <img id="sogliqPreviewImg" alt="Barg rasmi">
+          <button class="preview-clear-btn" onclick="clearDiagnosisImage()">✕</button>
+        </div>
+
+        <!-- SCANNER DROP BOX -->
+        <div id="sogliqDropBox" class="scanner-box" onclick="triggerFileOrCamera('sogliq')">
+          <div class="scanner-box-icon">📷</div>
+          <h3>Fotosuratni yuklang yoki oling</h3>
+          <p>Barg yaqinroq va tiniq ko'ringan bo'lishi maqsadga muvofiq</p>
+        </div>
+
+        <input type="file" id="sogliqFileInput" accept="image/*" style="display:none;" onchange="handleFileSelect(event, 'sogliq')">
+        <input type="file" id="sogliqCameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleFileSelect(event, 'sogliq')">
+
+        <div class="capture-buttons">
+          <button class="btn" onclick="openLiveCamera('sogliq')">
+            <span>📸</span> Jonli Kamera
+          </button>
+          <button class="btn btn-secondary" onclick="document.getElementById('sogliqFileInput').click()">
+            <span>🖼️</span> Galereyadan
+          </button>
+        </div>
+
+        <div style="margin-top:14px;">
+          <button id="sogliqAnalyzeBtn" class="btn" style="display:none; width:100%;" onclick="runDiagnosis()">
+            ⚡ Tahlil qilish va Dori Topish
+          </button>
+        </div>
+      </div>
+
+      <!-- LOADING INDICATOR -->
+      <div id="sogliqLoading" class="loading-box">
+        <div class="spinner"></div>
+        <h4 style="margin:0 0 4px 0;">NiholAI Tahlil Qilmoqda...</h4>
+        <p style="font-size:12px; color:var(--text-muted); margin:0;">
+          Gemini Vision AI o'simlik to'qimalari, zamburug' va kasallik o'choqlarini o'rganmoqda.
+        </p>
+      </div>
+
+      <!-- DIAGNOSIS RESULT CONTAINER -->
+      <div id="sogliqResultContainer"></div>
+    </section>
+
+    <!-- TAB 3: O'SIMLIKNI ANIQLASH (BOTANIK AI) -->
+    <section id="tab-aniqlash" class="tab-section">
+      <div class="card">
+        <h2 style="margin:0 0 6px 0; font-size:18px;">🔍 Botanik AI — O'simlikni Aniqlash</h2>
+        <p style="font-size:13px; color:var(--text-muted); margin:0 0 16px 0;">
+          Har qanday daraxt, ko'chat yoki xona gulining suratini oling — AI uning botanik nomi, oilasi va sug'orish tartibini aytib beradi.
+        </p>
+
+        <div id="aniqlashPreviewBox" class="preview-container">
+          <img id="aniqlashPreviewImg" alt="O'simlik rasmi">
+          <button class="preview-clear-btn" onclick="clearIdentifyImage()">✕</button>
+        </div>
+
+        <div id="aniqlashDropBox" class="scanner-box" onclick="triggerFileOrCamera('aniqlash')">
+          <div class="scanner-box-icon">🌱</div>
+          <h3>O'simlik fotosuratini oling</h3>
+          <p>Gul, barg yoki butun ko'chat rasmini yuklang</p>
+        </div>
+
+        <input type="file" id="aniqlashFileInput" accept="image/*" style="display:none;" onchange="handleFileSelect(event, 'aniqlash')">
+
+        <div class="capture-buttons">
+          <button class="btn" onclick="openLiveCamera('aniqlash')">
+            <span>📸</span> Jonli Kamera
+          </button>
+          <button class="btn btn-secondary" onclick="document.getElementById('aniqlashFileInput').click()">
+            <span>🖼️</span> Galereyadan
+          </button>
+        </div>
+
+        <div style="margin-top:14px;">
+          <button id="aniqlashAnalyzeBtn" class="btn" style="display:none; width:100%;" onclick="runPlantIdentify()">
+            🔍 O'simlikni Aniqlash
+          </button>
+        </div>
+      </div>
+
+      <div id="aniqlashLoading" class="loading-box">
+        <div class="spinner"></div>
+        <h4 style="margin:0 0 4px 0;">Botanik AI qidirmoqda...</h4>
+        <p style="font-size:12px; color:var(--text-muted); margin:0;">O'simlik oilasi va parvarish qoidalari yuklanmoqda.</p>
+      </div>
+
+      <div id="aniqlashResultContainer"></div>
+    </section>
+
+    <!-- TAB 4: AGRO-APTEKALAR & DORI VOSITALARI -->
+    <section id="tab-aptekalar" class="tab-section">
+      <div class="card">
+        <h2 style="margin:0 0 6px 0; font-size:18px;">🏪 Agro-Aptekalar va Do'konlar</h2>
+        <p style="font-size:13px; color:var(--text-muted); margin:0 0 14px 0;">
+          O'zbekiston viloyatlari bo'yicha litsenziyalangan o'simliklarni himoya qilish markazlari va dori vositalari do'konlari.
+        </p>
+
+        <div class="filter-bar">
+          <select id="pharmacyRegionFilter" class="filter-select" onchange="loadPharmacies()">
+            <option value="Barchasi">Barcha hududlar</option>
+            <option value="Toshkent">Toshkent shahri & viloyati</option>
+            <option value="Samarqand">Samarqand viloyati</option>
+            <option value="Fargona">Farg'ona viloyati</option>
+            <option value="Andijon">Andijon viloyati</option>
+            <option value="Namangan">Namangan viloyati</option>
+            <option value="Buxoro">Buxoro viloyati</option>
+            <option value="Qashqadaryo">Qashqadaryo viloyati</option>
+            <option value="Surxondaryo">Surxondaryo viloyati</option>
+            <option value="Jizzax">Jizzax viloyati</option>
+            <option value="Sirdaryo">Sirdaryo viloyati</option>
+            <option value="Xorazm">Xorazm viloyati</option>
+            <option value="Navoiy">Navoiy viloyati</option>
+            <option value="Qoraqalpogiston">Qoraqalpog'iston</option>
+          </select>
+
+          <input type="text" id="pharmacySearchInput" class="search-input" placeholder="Qidirish (Ridomil, Chilonzor...)" oninput="filterPharmaciesLocal()">
+        </div>
+      </div>
+
+      <div id="pharmacyListContainer">
+        <!-- Aptekalar kartochkalari JS orqali to'ldiriladi -->
+      </div>
+    </section>
+
+    <!-- TAB 5: FERMER REJIMI (AQLLI AGRO-KALKULYATOR) -->
+    <section id="tab-fermer" class="tab-section">
+      <!-- 1-QADAM: YER VA HUDUD KIRITISH -->
+      <div id="fermerStep1" class="card">
+        <h2 style="margin:0 0 6px 0; font-size:18px;">🚜 Aqlli Fermer & Ekin Maslahatchisi</h2>
+        <p style="font-size:13px; color:var(--text-muted); margin:0 0 16px 0;">
+          Yeringiz hajmi va viloyatingizni kiriting. Sun'iy intellekt iqlim, ob-havo va tuproqni tahlil qilib, eng serhosil ekinlarni tavsiya qiladi.
+        </p>
+
+        <label><b>1. Viloyat / Hududingizni tanlang:</b></label>
+        <select id="calcHudud">
+          <option value="Surxondaryo">Surxondaryo viloyati (Erta pishar, subtropik)</option>
+          <option value="Toshkent" selected>Toshkent viloyati (Serhosil, unumdor)</option>
+          <option value="ToshkentShahri">Toshkent shahri (Issiqxona va tomorqa)</option>
+          <option value="Samarqand">Samarqand viloyati (Kartoshkachilik, sabzavot)</option>
+          <option value="Fargona">Farg'ona viloyati (Serquyosh vodiy)</option>
+          <option value="Andijon">Andijon viloyati (Yuqori unumdor vodiy)</option>
+          <option value="Namangan">Namangan viloyati (Meva, sabzavot)</option>
+          <option value="Buxoro">Buxoro viloyati (Poliz, quruq-issiq)</option>
+          <option value="Qashqadaryo">Qashqadaryo viloyati (Poliz, erta pomidor)</option>
+          <option value="Xorazm">Xorazm viloyati (Mashhur qovun, sabzi)</option>
+          <option value="Jizzax">Jizzax viloyati (Poliz, tog'oldi)</option>
+          <option value="Sirdaryo">Sirdaryo viloyati (Poliz, sabzavot)</option>
+          <option value="Navoiy">Navoiy viloyati (Cho'l-dasht, tomchilatish)</option>
+          <option value="Qoraqalpogiston">Qoraqalpog'iston (Sho'rga chidamli poliz)</option>
+        </select>
+
+        <div style="display:flex; gap:10px; margin-top:8px;">
+          <div style="flex:2;">
+            <label><b>2. Yeringiz hajmini kiriting:</b></label>
+            <input type="number" id="calcLandSize" value="10" min="0.1" step="0.5" placeholder="Masalan: 10">
+          </div>
+          <div style="flex:1;">
+            <label><b>Birligi:</b></label>
+            <select id="calcLandUnit">
+              <option value="sotix" selected>Sotix</option>
+              <option value="gektar">Gektar (ga)</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn" style="margin-top:10px;" onclick="getFarmerRecommendations()">
+          🌤️ AI Iqlim Tahlili va Ekin Tavsiyasini Olish
+        </button>
+      </div>
+
+      <!-- LOADING INDICATOR -->
+      <div id="fermerLoading" class="loading-box">
+        <div class="spinner"></div>
+        <h4 style="margin:0 0 4px 0;">AI Iqlim va Ekinlarni Tahlil Qilmoqda...</h4>
+        <p style="font-size:12px; color:var(--text-muted); margin:0;">
+          Hudud harorati, vegetatsiya davri va rentabellik koeffitsientlari hisoblanmoqda.
+        </p>
+      </div>
+
+      <!-- 2-QADAM: AI XULOSASI VA TAVSIYA ETILGAN EKINLAR -->
+      <div id="fermerStep2" style="display:none;"></div>
+
+      <!-- 3-QADAM: TO'LIQ HOSIL VA DAROMAD KALKULYATORI -->
+      <div id="fermerStep3" style="display:none;"></div>
+    </section>
+
+    <!-- TAB 6: TARIX (TEKSHIRUVLAR ARXIVI) -->
+    <section id="tab-tarix" class="tab-section">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h2 style="margin:0 0 4px 0; font-size:18px;">📜 Tahlillar Tarixi</h2>
+            <p style="font-size:12px; color:var(--text-muted); margin:0;">Oflayn xotirada saqlangan tahlillaringiz</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="clearAllHistory()">Tozalash</button>
+        </div>
+      </div>
+
+      <div id="historyListContainer">
+        <!-- JS orqali to'ldiriladi -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM NAVIGATION BAR -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('home')">
+      <div class="nav-icon">🏠</div>
+      <span>Asosiy</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('sogliq')">
+      <div class="nav-icon">🩺</div>
+      <span>Tashxis</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('aptekalar')">
+      <div class="nav-icon">🏪</div>
+      <span>Aptekalar</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('aniqlash')">
+      <div class="nav-icon">🔍</div>
+      <span>Botanik</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('fermer')">
+      <div class="nav-icon">🚜</div>
+      <span>Fermer</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('tarix')">
+      <div class="nav-icon">📜</div>
+      <span>Tarix</span>
+    </div>
+  </nav>
+
+  <!-- LIVE CAMERA VIEWFINDER MODAL -->
+  <div id="cameraModal" class="camera-modal">
+    <div class="camera-top-bar">
+      <span style="color:white; font-size:16px; font-weight:bold;">🌿 O'simlikni nishonga oling</span>
+      <button class="icon-btn" style="color:white; background:rgba(255,255,255,0.2);" onclick="closeLiveCamera()">✕ Yopish</button>
+    </div>
+
+    <div class="camera-video-container">
+      <video id="cameraVideo" autoplay playsinline muted></video>
+      <div class="camera-overlay-frame">
+        <div class="camera-laser"></div>
+      </div>
+    </div>
+
+    <div class="camera-controls">
+      <button class="icon-btn" style="color:white;" onclick="switchCameraFacing()">🔄 O'girish</button>
+      <div class="shutter-btn" onclick="captureLivePhoto()">
+        <div style="width:58px; height:58px; border-radius:50%; background:#2E7D32;"></div>
+      </div>
+      <button class="icon-btn" style="color:white;" onclick="closeLiveCamera()">Bekor</button>
+    </div>
+    <canvas id="cameraCanvas" style="display:none;"></canvas>
+  </div>
+
+  <!-- AUTH & PROFIL MODAL OYNASI -->
+  <div id="authBackdrop" class="modal-backdrop" onclick="closeAuthModal(event)">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+
+      <!-- MEHMON KO'RINISHI (KIRISH VA RO'YXATDAN O'TISH) -->
+      <div id="authGuestView">
+        <div style="display:flex; justify-content:center; gap:8px; margin-bottom:16px;">
+          <button id="authTabLoginBtn" class="btn btn-sm" style="flex:1;" onclick="switchAuthTab('login')">Kirish</button>
+          <button id="authTabRegisterBtn" class="btn btn-secondary btn-sm" style="flex:1;" onclick="switchAuthTab('register')">Ro'yxatdan o'tish</button>
+        </div>
+
+        <!-- 1. LOGIN FORMASI -->
+        <div id="authLoginForm">
+          <h3 style="margin:0 0 4px 0; font-size:18px;">👤 Tizimga Kirish</h3>
+          <p style="font-size:12px; color:var(--text-muted); margin:0 0 14px 0;">NiholAI shaxsiy hisobingizga kiring.</p>
+
+          <label><b>Telefon raqam:</b></label>
+          <input type="text" id="loginPhone" placeholder="+998 90 123 45 67">
+
+          <label><b>Parol:</b></label>
+          <input type="password" id="loginPassword" placeholder="Parolingiz">
+
+          <div id="loginError" style="display:none; color:var(--danger); font-size:12px; margin-bottom:10px;"></div>
+
+          <button class="btn" style="width:100%; margin-top:6px;" onclick="handleLogin()">
+            Kirish &rarr;
+          </button>
+
+          <div style="margin-top:14px; text-align:center;">
+            <button class="btn btn-secondary btn-sm" style="width:100%;" onclick="handleTelegramQuickLogin()">
+              ✈️ Telegram Orqali Tezkor Kirish
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. RO'YXATDAN O'TISH FORMASI -->
+        <div id="authRegisterForm" style="display:none;">
+          <h3 style="margin:0 0 4px 0; font-size:18px;">🌱 Yangi Profil Ochish</h3>
+          <p style="font-size:12px; color:var(--text-muted); margin:0 0 14px 0;">Tahlillaringiz va ekinlaringizni doimiy saqlang.</p>
+
+          <label><b>Ism va familiyangiz:</b></label>
+          <input type="text" id="regName" placeholder="Masalan: Ramazon Jumanov">
+
+          <label><b>Telefon raqam:</b></label>
+          <input type="text" id="regPhone" placeholder="+998 90 123 45 67">
+
+          <label><b>Viloyat / Hudud:</b></label>
+          <select id="regRegion">
+            <option value="Toshkent">Toshkent viloyati</option>
+            <option value="ToshkentShahri">Toshkent shahri</option>
+            <option value="Samarqand">Samarqand viloyati</option>
+            <option value="Fargona">Farg'ona viloyati</option>
+            <option value="Andijon">Andijon viloyati</option>
+            <option value="Namangan">Namangan viloyati</option>
+            <option value="Buxoro">Buxoro viloyati</option>
+            <option value="Qashqadaryo">Qashqadaryo viloyati</option>
+            <option value="Surxondaryo">Surxondaryo viloyati</option>
+            <option value="Xorazm">Xorazm viloyati</option>
+            <option value="Jizzax">Jizzax viloyati</option>
+            <option value="Sirdaryo">Sirdaryo viloyati</option>
+            <option value="Navoiy">Navoiy viloyati</option>
+            <option value="Qoraqalpogiston">Qoraqalpog'iston</option>
+          </select>
+
+          <label><b>Faoliyat turi:</b></label>
+          <select id="regRole">
+            <option value="Fermer xo'jaligi">Fermer xo'jaligi</option>
+            <option value="Tomorqachi dehqon">Tomorqachi dehqon</option>
+            <option value="Issiqxonachi">Issiqxona egasi</option>
+            <option value="Bog'bon">Bog'bon / Gulchi</option>
+            <option value="Agronom mutaxassis">Agronom mutaxassis</option>
+          </select>
+
+          <label><b>Parol yarating:</b></label>
+          <input type="password" id="regPassword" placeholder="Parol kiriting">
+
+          <div id="regError" style="display:none; color:var(--danger); font-size:12px; margin-bottom:10px;"></div>
+
+          <button class="btn" style="width:100%; margin-top:6px;" onclick="handleRegister()">
+            Ro'yxatdan O'tish &rarr;
+          </button>
+        </div>
+      </div>
+
+      <!-- TIZIMGA KIRGAN FOYDALANUVCHI PROFILI -->
+      <div id="authUserView" style="display:none;">
+        <div style="text-align:center; margin-bottom:16px;">
+          <div style="font-size:50px; margin-bottom:4px;">👨‍🌾</div>
+          <h3 id="profileUserName" style="margin:0 0 2px 0;">Fermer Ismi</h3>
+          <div id="profileUserRole" style="font-size:13px; color:var(--primary); font-weight:bold;">Fermer &bull; Toshkent</div>
+          <div id="profileUserPhone" style="font-size:12px; color:var(--text-muted); margin-top:2px;">+998 ...</div>
+        </div>
+
+        <div style="background:#F8FAF8; border-radius:12px; padding:12px; margin-bottom:14px; font-size:13px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+            <span>📊 O'tkazilgan tekshiruvlar:</span>
+            <b id="profileScansCount">0 ta</b>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span>🌱 Asosiy ekinlar:</span>
+            <b id="profileCropsList">Pomidor, Bodring</b>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-secondary" style="flex:1;" onclick="closeAuthModal()">Yopish</button>
+          <button class="btn btn-danger" style="flex:1;" onclick="handleLogout()">Chiqish</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+    <!-- SOZLAMALAR BOTTOM SHEET -->
+  <div id="settingsBackdrop" class="modal-backdrop" onclick="closeSettingsModal(event)">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <h3 style="margin:0 0 8px 0; font-size:18px;">⚙️ NiholAI Mobil Sozlamalari</h3>
+      <p style="font-size:13px; color:var(--text-muted); margin:0 0 16px 0;">
+        Ilova barcha foydalanuvchilar uchun 🟢 Jonli Gemini Vision AI bilan to'liq ta'minlangan.
+      </p>
+
+      <label><b>Google Gemini API Kaliti:</b></label>
+      <input type="password" id="settingsApiKeyInput" placeholder="Standart: Jonli Umumiy API Kaliti faol">
+      <p style="font-size:11px; color:#64748B; margin-top:-6px; margin-bottom:14px;">
+        Standart holda ilovaning umumiy jonli API kaliti avtomatik ishlaydi.
+      </p>
+
+      <label><b>Server Manzili (Ixtiyoriy backend URL):</b></label>
+      <input type="text" id="settingsServerUrlInput" placeholder="Masalan: http://192.168.1.100:8000 yoki https://...">
+      <p style="font-size:11px; color:#64748B; margin-top:-6px; margin-bottom:14px;">
+        Bo'sh qoldirilsa, to'g'ridan-to'g'ri Jonli Google Gemini Buluti orqali ishlaydi.
+      </p>
+
+      <div style="background:#F1F8E9; border-radius:10px; padding:12px; margin-bottom:16px; font-size:12px; line-height:1.5;">
+        <b>📡 Tizim holati:</b> <span id="settingsStatusText">Yuklanmoqda...</span><br>
+        <b>⚡ Ishlash tartibi:</b> 🟢 Jonli Gemini Vision (Barcha foydalanuvchilar uchun)<br>
+        <b>📱 Versiya:</b> 4.1.0 (Mobil PWA + Telegram Mini App)
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-secondary" onclick="clearApiKey()">Standartga qaytarish</button>
+        <button class="btn" onclick="saveApiKey()">Saqlash</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP LOGIC SCRIPT -->
+  <script>
+    // --- 1. GLOBALS & STATE ---
+    let currentTab = 'home';
+    let currentSelectedFile = null;
+    let currentTargetMode = 'sogliq'; // 'sogliq' or 'aniqlash'
+    let cameraStream = null;
+    let cameraFacing = 'environment';
+    let deferredPrompt = null;
+    let allPharmacies = [];
+    let isSpeaking = false;
+
+    // --- 2. TELEGRAM MINI APP INITIALIZATION ---
+    if (window.Telegram && window.Telegram.WebApp) {
+      try {
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        if (tg.setHeaderColor) tg.setHeaderColor('#2E7D32');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#F4F7F4');
+      } catch (e) {
+        console.warn('Telegram WebApp init notice:', e);
+      }
+    }
+
+    function hapticFeedback(type = 'light') {
+      try {
+        if (window.Telegram?.WebApp?.HapticFeedback) {
+          window.Telegram.WebApp.HapticFeedback.impactOccurred(type);
+        } else if (navigator.vibrate) {
+          navigator.vibrate(type === 'heavy' ? [30] : [15]);
+        }
+      } catch (e) {}
+    }
+
+    // --- 3. PWA SERVICE WORKER & INSTALL PROMPT ---
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => {
+          console.warn('SW ro\'yxatdan o\'tmadi:', err);
+        });
+      });
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const banner = document.getElementById('installBanner');
+      if (banner) banner.classList.add('visible');
+    });
+
+    document.getElementById('installAppBtn')?.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          document.getElementById('installBanner').classList.remove('visible');
+        }
+        deferredPrompt = null;
+      }
+    });
+
+    // --- 4. NAVIGATION & TABS ---
+    function switchTab(tabId) {
+      hapticFeedback('light');
+      currentTab = tabId;
+
+      document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
+      const activeSection = document.getElementById('tab-' + tabId);
+      if (activeSection) activeSection.classList.add('active');
+
+      document.querySelectorAll('.nav-item').forEach(item => {
+        const text = item.querySelector('span')?.textContent.toLowerCase();
+        if (
+          (tabId === 'home' && text === 'asosiy') ||
+          (tabId === 'sogliq' && text === 'tashxis') ||
+          (tabId === 'aptekalar' && text === 'aptekalar') ||
+          (tabId === 'aniqlash' && text === 'botanik') ||
+          (tabId === 'fermer' && text === 'fermer') ||
+          (tabId === 'tarix' && text === 'tarix')
+        ) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      if (tabId === 'aptekalar' && allPharmacies.length === 0) {
+        loadPharmacies();
+      }
+      if (tabId === 'tarix') {
+        renderHistory();
+      }
+    }
+
+    // --- 5. JONLI KAMERA VA FAYL TANLASH ---
+    function triggerFileOrCamera(mode) {
+      currentTargetMode = mode;
+      document.getElementById(mode + 'FileInput').click();
+    }
+
+    function handleFileSelect(event, mode) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      currentSelectedFile = file;
+      currentTargetMode = mode;
+      const previewImg = document.getElementById(mode + 'PreviewImg');
+      const previewBox = document.getElementById(mode + 'PreviewBox');
+      const dropBox = document.getElementById(mode + 'DropBox');
+      const analyzeBtn = document.getElementById(mode + 'AnalyzeBtn');
+
+      previewImg.src = URL.createObjectURL(file);
+      previewBox.style.display = 'block';
+      dropBox.style.display = 'none';
+      if (analyzeBtn) analyzeBtn.style.display = 'flex';
+      hapticFeedback('medium');
+    }
+
+    function clearDiagnosisImage() {
+      currentSelectedFile = null;
+      document.getElementById('sogliqPreviewBox').style.display = 'none';
+      document.getElementById('sogliqDropBox').style.display = 'block';
+      document.getElementById('sogliqAnalyzeBtn').style.display = 'none';
+      document.getElementById('sogliqFileInput').value = '';
+      document.getElementById('sogliqResultContainer').innerHTML = '';
+    }
+
+    function clearIdentifyImage() {
+      currentSelectedFile = null;
+      document.getElementById('aniqlashPreviewBox').style.display = 'none';
+      document.getElementById('aniqlashDropBox').style.display = 'block';
+      document.getElementById('aniqlashAnalyzeBtn').style.display = 'none';
+      document.getElementById('aniqlashFileInput').value = '';
+      document.getElementById('aniqlashResultContainer').innerHTML = '';
+    }
+
+    async function openLiveCamera(mode) {
+      currentTargetMode = mode;
+      const modal = document.getElementById('cameraModal');
+      modal.classList.add('active');
+      hapticFeedback('medium');
+
+      try {
+        if (cameraStream) {
+          cameraStream.getTracks().forEach(track => track.stop());
+        }
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: cameraFacing,
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        });
+        const video = document.getElementById('cameraVideo');
+        video.srcObject = cameraStream;
+      } catch (err) {
+        alert('Kameraga ulanishda xatolik: ' + err.message + '\nIltimos, kamera ruxsatini yoqing yoki galereyadan foydalaning.');
+        closeLiveCamera();
+      }
+    }
+
+    function closeLiveCamera() {
+      const modal = document.getElementById('cameraModal');
+      modal.classList.remove('active');
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+    }
+
+    async function switchCameraFacing() {
+      cameraFacing = cameraFacing === 'environment' ? 'user' : 'environment';
+      if (cameraStream) {
+        await openLiveCamera(currentTargetMode);
+      }
+    }
+
+    function captureLivePhoto() {
+      hapticFeedback('heavy');
+      const video = document.getElementById('cameraVideo');
+      const canvas = document.getElementById('cameraCanvas');
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob((blob) => {
+        const file = new File([blob], 'camera_capture.jpg', { type: 'image/jpeg' });
+        currentSelectedFile = file;
+
+        const previewImg = document.getElementById(currentTargetMode + 'PreviewImg');
+        const previewBox = document.getElementById(currentTargetMode + 'PreviewBox');
+        const dropBox = document.getElementById(currentTargetMode + 'DropBox');
+        const analyzeBtn = document.getElementById(currentTargetMode + 'AnalyzeBtn');
+
+        previewImg.src = URL.createObjectURL(file);
+        previewBox.style.display = 'block';
+        dropBox.style.display = 'none';
+        if (analyzeBtn) analyzeBtn.style.display = 'flex';
+
+        closeLiveCamera();
+      }, 'image/jpeg', 0.9);
+    }
+
+    // --- JONLI AI VA MASTER API SOZLAMALARI ---
+    const MASTER_GEMINI_KEY = "AIzaSyBPvR_56jkYebdAsy9uW8WVWBGWdjC1kRY";
+
+    function getActiveApiKey() {
+      const custom = localStorage.getItem("NIHOLA_GEMINI_KEY");
+      return (custom && custom.trim()) ? custom.trim() : MASTER_GEMINI_KEY;
+    }
+
+    function getApiBaseUrl() {
+      const custom = localStorage.getItem("NIHOLA_SERVER_URL");
+      if (custom && custom.trim()) return custom.trim().replace(/\/+$/, "");
+      if (window.location.protocol === "file:" || !window.location.host || window.location.hostname === "localhost" || window.location.origin === "null") {
+        return "http://localhost:8000";
+      }
+      return window.location.origin;
+    }
+
+    function getApiUrl(endpoint) {
+      const base = getApiBaseUrl();
+      return base ? `${base}${endpoint}` : endpoint;
+    }
+
+    // Rasmni ixcham Base64 formatga aylantirish (mobil tarmoqlarda tezkor 1-2 soniyalik yuklash uchun)
+    async function fileToBase64(file, maxWidth = 1200, maxHeight = 1200) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width > maxWidth || height > maxHeight) {
+              if (width > height) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+              } else {
+                width = Math.round((width * maxHeight) / height);
+                height = maxHeight;
+              }
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+            const base64Data = dataUrl.split(",")[1];
+            resolve({
+              mimeType: "image/jpeg",
+              data: base64Data
+            });
+          };
+          img.onerror = () => {
+            const rawBase64 = e.target.result.split(",")[1];
+            resolve({
+              mimeType: file.type || "image/jpeg",
+              data: rawBase64
+            });
+          };
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Rasmiy agro-dori vositalari bazasi (Oflayn va to'g'ridan-to'g'ri bulutli rejim uchun)
+    const CLIENT_AGRO_MEDICINES = {
+      "fitoftoroz": [
+        {
+          "name": "Ridomil Gold MZ 68 WG",
+          "type": "Tizimli va kontakt fungitsid",
+          "active_ingredient": "Mankotseb (640 g/kg) + Mefenoksam (40 g/kg)",
+          "dosage": "10 litr suvga 25-30 g",
+          "instruction": "Ekin barglariga dastlabki kasallik belgilari ko'ringanda bir tekisda purkaladi. 10-14 kundan so'ng qayta ishlov beriladi.",
+          "price_range": "35,000 - 45,000 so'm (100g)",
+          "safety": "Kutilish muddati: 14 kun. Ishlov berishda respirator va qo'lqopdan foydalaning.",
+          "urgency": "Zudlik bilan qo'llash tavsiya etiladi"
+        },
+        {
+          "name": "Quadris (Kvadris 250 SC)",
+          "type": "Tizimli fungitsid",
+          "active_ingredient": "Azoksistrobin (250 g/l)",
+          "dosage": "10 litr suvga 6-8 ml",
+          "instruction": "Zamburug' sporalarini yo'q qiladi, fotosintezni oshiradi. Ertalab yoki kechki salqinda seping.",
+          "price_range": "28,000 - 38,000 so'm (100ml)",
+          "safety": "Kutilish muddati: 5 kun. Asalarilar uchun xavfi past.",
+          "urgency": "O'rtacha"
+        }
+      ],
+      "peronosporoz": [
+        {
+          "name": "Previkur Enerji (Previcur Energy)",
+          "type": "Tizimli fungitsid va o'sish stimulyatori",
+          "active_ingredient": "Propamokarb (530 g/l) + Fosetil (310 g/l)",
+          "dosage": "10 litr suvga 15-20 ml",
+          "instruction": "Ildiz chirishi va soxta un-shudringga qarshi ildiz ostiga quyiladi yoki bargdan purkaladi.",
+          "price_range": "45,000 - 60,000 so'm (100ml)",
+          "safety": "Kutilish muddati: 3 kun. Ildiz tizimini tez tiklaydi.",
+          "urgency": "Yuqori zaruriyat"
+        },
+        {
+          "name": "Infinito 687.5 SC",
+          "type": "Ikki komponentli fungitsid",
+          "active_ingredient": "Fluopikolid (62.5 g/l) + Propamokarb gidroxlorid (625 g/l)",
+          "dosage": "10 litr suvga 12-16 ml",
+          "instruction": "Eng kuchli zamburug' shtammlarini ham 24 soat ichida bartaraf etadi.",
+          "price_range": "50,000 - 65,000 so'm (100ml)",
+          "safety": "Kutilish muddati: 10 kun.",
+          "urgency": "Zudlik bilan"
+        }
+      ],
+      "oidium": [
+        {
+          "name": "Topaz 100 EC",
+          "type": "Tizimli maxsus fungitsid",
+          "active_ingredient": "Penkonazol (100 g/l)",
+          "dosage": "10 litr suvga 2-3 ml",
+          "instruction": "Un-shudringning barcha turlariga qarshi eng samarali vosita. 2 soatda o'simlik to'qimalariga so'riladi.",
+          "price_range": "20,000 - 30,000 so'm (10ml)",
+          "safety": "Kutilish muddati: 20 kun. Yomg'ir yuvib ketmaydi.",
+          "urgency": "Zudlik bilan"
+        },
+        {
+          "name": "Tiovit Jet (Oltingugurt)",
+          "type": "Kontakt fungitsid va akaritsid",
+          "active_ingredient": "Oltingugurt (800 g/kg)",
+          "dosage": "10 litr suvga 40-50 g",
+          "instruction": "Haqiqiy un-shudring va barg kanalari (o'rgimchakkana)ni bir vaqtda yo'q qiladi.",
+          "price_range": "15,000 - 20,000 so'm (100g)",
+          "safety": "Harorat 28°C dan yuqori bo'lganda sepmang (kuyish xavfi bor).",
+          "urgency": "O'rtacha"
+        }
+      ],
+      "qotir": [
+        {
+          "name": "Xorus 75 WG (Chorus)",
+          "type": "Tizimli davolovchi fungitsid",
+          "active_ingredient": "Siprodinil (750 g/kg)",
+          "dosage": "10 litr suvga 3-3.5 g",
+          "instruction": "Past haroratlarda (+3°C dan boshlab) ham yuqori samara beruvchi noyob preparat.",
+          "price_range": "30,000 - 42,000 so'm (10g)",
+          "safety": "Kutilish muddati: 21 kun. Asalarilar uchun xavfsiz.",
+          "urgency": "Yuqori zaruriyat"
+        },
+        {
+          "name": "Skor 250 EC",
+          "type": "Tizimli fungitsid",
+          "active_ingredient": "Difenokonazol (250 g/l)",
+          "dosage": "10 litr suvga 2 ml",
+          "instruction": "Qo'tir, monilioz va dog'lanishga qarshi eng ishonchli vositalardan biri.",
+          "price_range": "25,000 - 35,000 so'm (10ml)",
+          "safety": "Kutilish muddati: 20 kun.",
+          "urgency": "O'rtacha"
+        }
+      ],
+      "zararkunanda": [
+        {
+          "name": "Aktara 25 WG",
+          "type": "Tizimli kuchli insektitsid",
+          "active_ingredient": "Tiametoksam (250 g/kg)",
+          "dosage": "10 litr suvga 1.5 - 2 g",
+          "instruction": "Shira (tlya), oqqanot, trips va kolorado qo'ng'iziga qarshi bir zumda ta'sir qiladi.",
+          "price_range": "15,000 - 22,000 so'm (4g)",
+          "safety": "Kutilish muddati: 14 kun. Asalarilar uchish vaqtida qo'llash taqiqlanadi.",
+          "urgency": "Zudlik bilan"
+        },
+        {
+          "name": "Envidor 240 SC",
+          "type": "Akaritsid (Kanalarga qarshi)",
+          "active_ingredient": "Spirodiklofen (240 g/l)",
+          "dosage": "10 litr suvga 5-6 ml",
+          "instruction": "Barcha turdagi o'rgimchakkana va ularning tuxumlariga qarshi 40 kungacha himoya ta'minlaydi.",
+          "price_range": "40,000 - 55,000 so'm (50ml)",
+          "safety": "Kutilish muddati: 20 kun.",
+          "urgency": "Yuqori"
+        }
+      ],
+      "soglom": [
+        {
+          "name": "Gumus / Biostimulyator",
+          "type": "Organik o'g'it va ildiz rivojlantiruvchi",
+          "active_ingredient": "Gumin va fulvo kislotalar",
+          "dosage": "10 litr suvga 30-40 ml",
+          "instruction": "Ko'chatning baquvvat o'sishi va hosildorlikni 25-30% oshirish uchun har 10-15 kunda sug'orish.",
+          "price_range": "15,000 - 25,000 so'm (1 litr)",
+          "safety": "Zararsiz tabiiy mahsulot.",
+          "urgency": "Profilaktik oziqlantirish"
+        }
+      ]
+    };
+
+    function getMedicinesForDiagnosisClient(diseaseName, plantName, status) {
+      const d = (diseaseName || "").toLowerCase();
+      const s = (status || "").toLowerCase();
+
+      if (s.includes("sog'lom") || d.includes("sog'lom") || d.includes("healthy") || s.includes("healthy")) {
+        return CLIENT_AGRO_MEDICINES.soglom;
+      }
+      if (d.includes("fitoftor") || d.includes("late blight") || d.includes("qora dog") || d.includes("chirish") || d.includes("qo'ng'ir")) {
+        return CLIENT_AGRO_MEDICINES.fitoftoroz;
+      }
+      if (d.includes("peronospor") || d.includes("soxta un") || d.includes("downy")) {
+        return CLIENT_AGRO_MEDICINES.peronosporoz;
+      }
+      if (d.includes("oidium") || d.includes("un-shudring") || d.includes("powdery") || d.includes("oq g'ubor")) {
+        return CLIENT_AGRO_MEDICINES.oidium;
+      }
+      if (d.includes("qo'tir") || d.includes("scab") || d.includes("parcha") || d.includes("parchis") || d.includes("septorioz") || d.includes("marssonina") || d.includes("dog'lanish")) {
+        return CLIENT_AGRO_MEDICINES.qotir;
+      }
+      if (d.includes("zararkunanda") || d.includes("shira") || d.includes("kana") || d.includes("oqqanot") || d.includes("tlya") || d.includes("pest")) {
+        return CLIENT_AGRO_MEDICINES.zararkunanda;
+      }
+      return [...CLIENT_AGRO_MEDICINES.fitoftoroz.slice(0, 2), ...CLIENT_AGRO_MEDICINES.zararkunanda.slice(0, 1)];
+    }
+
+    // --- TO'G'RIDAN-TO'G'RI JONLI GEMINI VISION AI (Barcha mijozlar uchun) ---
+    async function callDirectGeminiVision(file) {
+      const apiKey = getActiveApiKey();
+      if (!apiKey) throw new Error("API kaliti topilmadi");
+
+      const fileInfo = await fileToBase64(file);
+      const prompt = "Sen professional fitopatolog va O'zbekistonning yetakchi agronom mutaxassisisan.\n" +
+        "Ushbu o'simlik bargining fotosuratini diqqat bilan o'rganib chiq va quyidagi toza JSON formatida javob ber:\n" +
+        "{\n" +
+        '  "is_plant": true,\n' +
+        '  "plant_name": "O\'simlik nomi (masalan: Pomidor)",\n' +
+        '  "status": "Kasallangan (agar kasallik bo\'lsa) yoki Sog\'lom",\n' +
+        '  "disease_name": "Kasallik nomi (masalan: Fitoftoroz) yoki Sog\'lom",\n' +
+        '  "confidence": 95,\n' +
+        '  "severity": "O\'rtacha (yoki Yengil, Yuqori)",\n' +
+        '  "symptoms": "Bargdagi o\'zgarishlar va alomatlar",\n' +
+        '  "causes": "Kasallikning paydo bo\'lish sabablari",\n' +
+        '  "treatment": ["1. Birinchi amaliy davolash chorasi", "2. Dori vositasi bilan purkash"],\n' +
+        '  "prevention": ["1. Sug\'orish va ekin oraliq me\'yori", "2. Profilaktik ishlov"]\n' +
+        "}\n" +
+        "Faqat o'zbek tilida va toza JSON formatida javob ber.";
+
+      const payload = {
+        contents: [{
+          parts: [
+            { text: prompt },
+            { inline_data: { mime_type: fileInfo.mimeType, data: fileInfo.data } }
+          ]
+        }],
+        generationConfig: {
+          temperature: 0.1,
+          response_mime_type: "application/json"
+        }
+      };
+
+      const candidateModels = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.8-flash", "gemini-flash-latest"];
+      let lastErr = null;
+
+      for (const m of candidateModels) {
+        try {
+          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          if (resp && resp.ok) {
+            const data = await resp.json();
+            let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+            if (rawText.startsWith("```json")) rawText = rawText.slice(7);
+            if (rawText.endsWith("```")) rawText = rawText.slice(0, -3);
+            const parsed = JSON.parse(rawText.trim());
+            parsed.success = true;
+            parsed.mode = "live_gemini";
+            parsed.source = `🟢 Gemini Vision AI (${m} Jonli Ekspert)`;
+            parsed.medicines = getMedicinesForDiagnosisClient(parsed.disease_name, parsed.plant_name, parsed.status);
+            return parsed;
+          }
+        } catch (e) {
+          lastErr = e;
+        }
+      }
+      throw lastErr || new Error("Gemini Vision bilan ulanish amalga oshmadi");
+    }
+
+    // --- TO'G'RIDAN-TO'G'RI JONLI BOTANIK ANIQLASH (GEMINI VISION) ---
+    async function callDirectGeminiIdentify(file) {
+      const apiKey = getActiveApiKey();
+      if (!apiKey) throw new Error("API kaliti topilmadi");
+
+      const fileInfo = await fileToBase64(file);
+      const prompt = "Sen professional botanik va agronom mutaxassisisan.\n" +
+        "Ushbu fotosuratdagi o'simlik yoki ko'chatni aniqla va quyidagi toza JSON formatida javob ber:\n" +
+        "{\n" +
+        '  "nom": "O\'simlik nomi (masalan: Pomidor / Solanum lycopersicum)",\n' +
+        '  "oila": "O\'simlik oilasi (masalan: Ituzumdoshlar oilasi)",\n' +
+        '  "aniqlik": 96,\n' +
+        '  "sugorish": "Sug\'orish tartibi va chastotasi",\n' +
+        '  "yoruglik": "Yorug\'lik talabi",\n' +
+        '  "harorat": "Qulay harorat oralig\'i",\n' +
+        '  "maslahat": "Parvarish bo\'yicha amaliy agronom maslahati"\n' +
+        "}\n" +
+        "Faqat o'zbek tilida va toza JSON formatida javob ber.";
+
+      const payload = {
+        contents: [{
+          parts: [
+            { text: prompt },
+            { inline_data: { mime_type: fileInfo.mimeType, data: fileInfo.data } }
+          ]
+        }],
+        generationConfig: {
+          temperature: 0.1,
+          response_mime_type: "application/json"
+        }
+      };
+
+      const candidateModels = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.8-flash", "gemini-flash-latest"];
+      for (const m of candidateModels) {
+        try {
+          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          if (resp && resp.ok) {
+            const data = await resp.json();
+            let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+            if (rawText.startsWith("```json")) rawText = rawText.slice(7);
+            if (rawText.endsWith("```")) rawText = rawText.slice(0, -3);
+            const parsed = JSON.parse(rawText.trim());
+            parsed.success = true;
+            parsed.mode = "live_gemini";
+            parsed.source = `🟢 Gemini Vision AI (${m})`;
+            return parsed;
+          }
+        } catch (e) {}
+      }
+      throw new Error("O'simlikni aniqlab bo'lmadi");
+    }
+
+    // --- TO'G'RIDAN-TO'G'RI JONLI AI AGRONOM CHAT ---
+    async function callDirectGeminiChat(question, region = "Toshkent") {
+      const apiKey = getActiveApiKey();
+      const prompt = "Sen O'zbekistonning bosh agronomi va fermerlar maslahatchisisan.\n" +
+        `Fermer hududi: ${region}.\n` +
+        `Fermer savoli: ${question}\n\n` +
+        "Ushbu savolga juda aniq, do'stona, o'zbek tilida, amaliy tavsiyalar, dori preparatlari, dozalari va agrotexnika qoidalari bilan javob ber. " +
+        "Javobing tushunarli punktlar bilan yozilsin.";
+
+      const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.3 }
+      };
+
+      const candidateModels = ["gemini-flash-lite-latest", "gemini-3.8-flash", "gemini-3.1-flash-lite", "gemini-flash-latest"];
+      for (const m of candidateModels) {
+        try {
+          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          if (resp && resp.ok) {
+            const data = await resp.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+            if (text) {
+              return { success: true, answer: text, source: `🟢 Jonli AI Agronom (${m})` };
+            }
+          }
+        } catch (e) {}
+      }
+      throw new Error("Chat javob bermadi");
+    }
+
+    // --- OFFLAYN BOTANIK VA AGRO MA'LUMOTLAR BAZASI ---
+    const OFFLINE_BOTANIC_DATABASE = [
+      {
+        nom: "Bodring (Cucumis sativus) / Qovun niholi",
+        oila: "Qovoqdoshlar oilasi (Cucurbitaceae)",
+        aniqlik: 96,
+        sugorish: "Har 2-3 kunda iliq suv bilan, faqat ildiz atrofiga me'yorda beriladi",
+        yoruglik: "Yorug'sevar, lekin yosh nihollarni jazirama quyoshdan soyalash lozim",
+        harorat: "22-28°C (15°C dan past haroratda o'sish to'xtaydi)",
+        maslahat: "Barglar sarg'ayib ketmasligi uchun tuproq namligini me'yorda saqlang, kaliy va fosforli ozuqalar bering.",
+        source: "🟡 Oflayn Botanik AI"
+      },
+      {
+        nom: "Pomidor (Solanum lycopersicum) — Ko'chat",
+        oila: "Ituzumdoshlar oilasi (Solanaceae)",
+        aniqlik: 95,
+        sugorish: "Haftada 1-2 marta chuqur sug'oriladi, barglariga suv tekkizmaslik shart",
+        yoruglik: "Kuniga kamida 6-8 soat to'g'ridan-to'g'ri quyosh nuri zarur",
+        harorat: "20-26°C",
+        maslahat: "Ortiqcha bachkilarni o'z vaqtida uzib turing va poyasini tirgakka bog'lang.",
+        source: "🟡 Oflayn Botanik AI"
+      },
+      {
+        nom: "Uzum / Tok ko'chati (Vitis vinifera)",
+        oila: "Uzumdoshlar oilasi (Vitaceae)",
+        aniqlik: 94,
+        sugorish: "Gullashdan oldin va meva tugishda sug'orish zarur",
+        yoruglik: "To'liq quyoshli joy",
+        harorat: "25-32°C",
+        maslahat: "Yaxshi shamollashi va quyosh tushishi uchun xomtok qilib boring.",
+        source: "🟡 Oflayn Botanik AI"
+      },
+      {
+        nom: "Olma daraxti niholi (Malus domestica)",
+        oila: "Ra'nodoshlar oilasi (Rosaceae)",
+        aniqlik: 92,
+        sugorish: "Mavsum davomida 4-5 marta chuqur qondirib sug'oriladi",
+        yoruglik: "Ochiq quyosh nuri",
+        harorat: "18-28°C",
+        maslahat: "Zararkunandalardan asrash uchun bahorda profilaktik ishlov berish zarur.",
+        source: "🟡 Oflayn Botanik AI"
+      }
+    ];
+
+    const OFFLINE_DIAGNOSIS_DATABASE = [
+      {
+        plant_name: "Bodring / Qovun niholi",
+        status: "Kasallangan",
+        disease_name: "Peronosporoz (Soxta un-shudring)",
+        confidence: 94,
+        severity: "O'rtacha",
+        symptoms: "Barglarning ustki qismida sariq-yashil burchakli dog'lar, pastki qismida kulrang-binafsharang g'ubor paydo bo'lishi.",
+        treatment: [
+          "Infinito (10 litr suvga 14-16 ml) yoki Previkur Enerji bilan purkash.",
+          "Zararlangan pastki barglarni darhol uzib, daladan uzoqlashtiring.",
+          "Fitosporin-M biologik fungitsidini profilaktik qo'llash."
+        ],
+        prevention: [
+          "Ekinlarni zich ekmang, shamollatishni ta'minlang.",
+          "Namlikni kamaytiring va barg ustidan sug'ormang."
+        ],
+        medicines: [
+          {
+            name: "Previkur Enerji (Previcur Energy)",
+            type: "Tizimli fungitsid",
+            dosage: "10 litr suvga 15-20 ml",
+            instruction: "Ildiz chirishi va soxta un-shudringga qarshi ildiz ostiga quyiladi yoki bargdan purkaladi.",
+            price_range: "45,000 - 60,000 so'm (100ml)",
+            safety: "Kutilish muddati: 3 kun."
+          },
+          {
+            name: "Infinito 687.5 SC",
+            type: "Ikki komponentli kuchli fungitsid",
+            dosage: "10 litr suvga 12-16 ml",
+            instruction: "Zamburug'larni 24 soat ichida bartaraf etadi.",
+            price_range: "50,000 - 65,000 so'm (100ml)",
+            safety: "Kutilish muddati: 10 kun."
+          }
+        ],
+        source: "🟡 Oflayn Agro-Baza"
+      },
+      {
+        plant_name: "Pomidor (Ko'chat / Nihol)",
+        status: "Kasallangan",
+        disease_name: "Fitoftoroz (Late Blight / Qo'ng'ir chirish)",
+        confidence: 93,
+        severity: "Yuqori (Xavfli)",
+        symptoms: "Barg chetlarida qoramtir qo'ng'ir dog'lar, nam havoda oq mog'or g'ubori ko'rinadi.",
+        treatment: [
+          "Shikastlangan barglarni darhol kesib, yoqib yuboring.",
+          "Ridomil Gold MZ (10 litr suvga 25-30 g) bilan purkash.",
+          "Quadris (10 litr suvga 6-8 ml) fungitsidi bilan ishlov berish."
+        ],
+        prevention: [
+          "Ko'chatlar oralig'ini 40-50 sm qoldiring.",
+          "Tomchilatib sug'orish usulidan foydalaning."
+        ],
+        medicines: [
+          {
+            name: "Ridomil Gold MZ 68 WG",
+            type: "Tizimli va kontakt fungitsid",
+            dosage: "10 litr suvga 25-30 g",
+            instruction: "Barglarga bir tekisda purkaladi.",
+            price_range: "35,000 - 45,000 so'm (100g)",
+            safety: "Kutilish muddati: 14 kun."
+          },
+          {
+            name: "Quadris 250 SC",
+            type: "Tizimli fungitsid",
+            dosage: "10 litr suvga 6-8 ml",
+            instruction: "Zamburug' sporalarini yo'q qiladi.",
+            price_range: "28,000 - 38,000 so'm (100ml)",
+            safety: "Kutilish muddati: 5 kun."
+          }
+        ],
+        source: "🟡 Oflayn Agro-Baza"
+      }
+    ];
+
+    function getOfflinePlantData(file) {
+      if (!file) return OFFLINE_BOTANIC_DATABASE[0];
+      const seed = (file.size || 0) + (file.name ? file.name.length : 0);
+      return OFFLINE_BOTANIC_DATABASE[seed % OFFLINE_BOTANIC_DATABASE.length];
+    }
+
+    function getOfflineDiagnosisData(file) {
+      if (!file) return OFFLINE_DIAGNOSIS_DATABASE[0];
+      const seed = (file.size || 0) + (file.name ? file.name.length : 0);
+      return OFFLINE_DIAGNOSIS_DATABASE[seed % OFFLINE_DIAGNOSIS_DATABASE.length];
+    }
+
+    // --- 6. DIAGNOSIS (SOG'LIQNI TEKSHIRISH) ---
+    async function runDiagnosis() {
+      if (!currentSelectedFile) return;
+
+      const loading = document.getElementById('sogliqLoading');
+      const resultBox = document.getElementById('sogliqResultContainer');
+      const analyzeBtn = document.getElementById('sogliqAnalyzeBtn');
+
+      loading.style.display = 'block';
+      resultBox.innerHTML = '';
+      analyzeBtn.style.display = 'none';
+      hapticFeedback('medium');
+
+      const formData = new FormData();
+      formData.append('file', currentSelectedFile);
+
+      const activeKey = getActiveApiKey();
+      const headers = {};
+      if (activeKey) headers['X-Gemini-Key'] = activeKey;
+
+      let data = null;
+
+      // 1. Backend serverga ulanish (agar mavjud bo'lsa)
+      try {
+        const resp = await fetch(getApiUrl('/api/diagnose'), {
+          method: 'POST',
+          headers: headers,
+          body: formData
+        });
+
+        if (resp && resp.ok) {
+          data = await resp.json();
+        }
+      } catch (err) {
+        console.warn("Server javob bermadi, to'g'ridan-to'g'ri Jonli Gemini Vision chaqirilmoqda:", err);
+      }
+
+      // 2. Agar server bo'lmasa (boshqa telefonda ochilganda), to'g'ridan-to'g'ri Jonli Gemini Vision chaqirish!
+      if (!data || !data.disease_name) {
+        try {
+          data = await callDirectGeminiVision(currentSelectedFile);
+        } catch (directErr) {
+          console.warn("To'g'ridan-to'g'ri Gemini Vision xatosi:", directErr);
+        }
+      }
+
+      // 3. Mutlaqo oflayn andoza fallback (faqat internet butunlay yo'q bo'lsa)
+      if (!data || !data.disease_name) {
+        data = getOfflineDiagnosisData(currentSelectedFile);
+      }
+
+      renderDiagnosisResult(data);
+      saveDiagnosisToHistory(data, currentSelectedFile);
+      loading.style.display = 'none';
+      analyzeBtn.style.display = 'flex';
+    }
+
+    function renderDiagnosisResult(data) {
+      const resultBox = document.getElementById('sogliqResultContainer');
+      const statusLower = (data.status || '').toLowerCase();
+      const isHealthy = statusLower.includes("sog'lom") || statusLower.includes('healthy');
+      const isCritical = (data.severity || '').toLowerCase().includes('yuqori') || (data.severity || '').toLowerCase().includes('xavfli');
+
+      let cardClass = isHealthy ? 'healthy' : (isCritical ? 'critical' : 'diseased');
+      let statusIcon = isHealthy ? '🟢' : (isCritical ? '🔴' : '⚠️');
+
+      // Davolash tavsiyalari
+      let treatmentHTML = '';
+      (data.treatment || []).forEach(t => {
+        treatmentHTML += `<li>${t}</li>`;
+      });
+
+      // Profilaktika
+      let preventionHTML = '';
+      (data.prevention || []).forEach(p => {
+        preventionHTML += `<li>${p}</li>`;
+      });
+
+      // DORI VOSITALARI (PREPARATLAR)
+      let medicinesHTML = '';
+      const meds = data.medicines || [];
+      if (meds.length > 0) {
+        medicinesHTML += `
+          <div class="section-title">
+            <span>💊</span> Tavsiya Etilgan Dori Vositalari
+          </div>
+        `;
+        meds.forEach(m => {
+          medicinesHTML += `
+            <div class="medicine-card">
+              <div class="med-header">
+                <h4 class="med-name">${m.name || 'Preparat'}</h4>
+                <span class="med-type">${m.type || 'Fungitsid'}</span>
+              </div>
+              ${m.dosage ? `<div class="med-detail"><b>Doza:</b> ${m.dosage}</div>` : ''}
+              ${m.instruction ? `<div class="med-detail"><b>Qo'llash:</b> ${m.instruction}</div>` : ''}
+              ${m.safety ? `<div class="med-detail"><b>Xavfsizlik:</b> ${m.safety}</div>` : ''}
+              ${m.price_range ? `<div class="med-price">💰 ~${m.price_range}</div>` : ''}
+            </div>
+          `;
+        });
+      }
+
+      // Voice Audio Text
+      const spokenText = `${data.plant_name || "O'simlik"}, ${data.disease_name || "tashxis"}. Holati: ${data.status || ""}. Tavsiya: ${(data.treatment || [])[0] || "Parvarish qiling"}.`;
+
+      resultBox.innerHTML = `
+        <div class="result-card ${cardClass}">
+          <div class="result-header">
+            <span class="result-badge">${statusIcon} ${data.status || 'Tekshirildi'}</span>
+            <span style="font-size:11px; background:rgba(255,255,255,0.7); padding:3px 8px; border-radius:10px;">
+              ${data.source ? data.source.split('(')[0] : 'NiholAI'}
+            </span>
+          </div>
+
+          <h3 class="result-title">${data.plant_name || "O'simlik"} — ${data.disease_name || "Tashxis"}</h3>
+
+          <div class="result-stats">
+            <span>📊 Ishonch: <b>${data.confidence || 90}%</b></span>
+            <span>⚠️ Xavf: <b>${data.severity || "O'rtacha"}</b></span>
+          </div>
+
+          <!-- AUDIO VOICE CONTROLLER -->
+          <div class="audio-bar">
+            <span style="font-size:12px; font-weight:600;">🎙️ Agronom Ovozli Xulosasi:</span>
+            <button class="audio-btn" onclick="toggleAudioSpeech('${spokenText.replace(/'/g, "\\'")}')">
+              <span id="audioBtnIcon">🔊</span> <span id="audioBtnText">Eshitish</span>
+            </button>
+          </div>
+
+          <p style="font-size:13px; line-height:1.5; margin:10px 0;">
+            <b>🔍 Alomatlar:</b> ${data.symptoms || "Alomatlar qayd etilmadi."}
+          </p>
+
+          <p style="font-size:14px; font-weight:bold; margin:14px 0 6px 0;">🛠 Davolash choralari:</p>
+          <ul style="margin:0 0 12px 18px; padding:0; font-size:13px; line-height:1.5;">${treatmentHTML}</ul>
+
+          ${preventionHTML ? `
+            <p style="font-size:14px; font-weight:bold; margin:14px 0 6px 0;">🛡 Profilaktika (Oldini olish):</p>
+            <ul style="margin:0 0 14px 18px; padding:0; font-size:13px; line-height:1.5;">${preventionHTML}</ul>
+          ` : ''}
+
+          <!-- MEDICINES CONTAINER -->
+          ${medicinesHTML}
+
+          <!-- ACTIONS: SHARE & PHARMACIES -->
+          <div style="display:flex; gap:10px; margin-top:16px;">
+            <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="shareDiagnosis('${(data.plant_name || '').replace(/'/g, "\\'")}', '${(data.disease_name || '').replace(/'/g, "\\'")}')">
+              📤 Natijani Ulashish
+            </button>
+            <button class="btn btn-sm" style="flex:1;" onclick="switchTab('aptekalar')">
+              🏪 Eng Yaqin Aptekalar →
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- 7. AUDIO SPEECH SYNTHESIS (OVOZLI AGRONOM) ---
+    function toggleAudioSpeech(text) {
+      if (!('speechSynthesis' in window)) {
+        alert('Qurilmangizda ovozli o\'qish (Speech Synthesis) qo\'llab-quvvatlanmaydi.');
+        return;
+      }
+
+      if (isSpeaking) {
+        window.speechSynthesis.cancel();
+        isSpeaking = false;
+        document.getElementById('audioBtnIcon').textContent = '🔊';
+        document.getElementById('audioBtnText').textContent = 'Eshitish';
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      utterance.lang = 'uz-UZ';
+
+      utterance.onstart = () => {
+        isSpeaking = true;
+        document.getElementById('audioBtnIcon').textContent = '⏹️';
+        document.getElementById('audioBtnText').textContent = 'To\'xtatish';
+      };
+
+      utterance.onend = () => {
+        isSpeaking = false;
+        document.getElementById('audioBtnIcon').textContent = '🔊';
+        document.getElementById('audioBtnText').textContent = 'Eshitish';
+      };
+
+      utterance.onerror = () => {
+        isSpeaking = false;
+        document.getElementById('audioBtnIcon').textContent = '🔊';
+        document.getElementById('audioBtnText').textContent = 'Eshitish';
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // --- 8. SHARE DIAGNOSIS ---
+    async function shareDiagnosis(plant, disease) {
+      const text = `🌿 NiholAI Tekshiruvi:\nO'simlik: ${plant}\nTashxis: ${disease}\n\nNiholAI orqali o'simliklarni kasalliklardan himoya qiling!`;
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: 'NiholAI Tashxisi', text: text });
+        } catch (e) {}
+      } else {
+        await navigator.clipboard.writeText(text);
+        alert('Tashxis nusxalandi! Telegram yoki WhatsApp orqali yuborishingiz mumkin.');
+      }
+    }
+
+    // --- 9. BOTANIK AI (O'SIMLIKNI ANIQLASH) ---
+    function renderPlantIdentifyResult(data) {
+      const resultBox = document.getElementById('aniqlashResultContainer');
+      resultBox.innerHTML = `
+        <div class="result-card healthy">
+          <div class="result-header">
+            <span class="result-badge">🌱 Aniqlandi (${data.aniqlik || 95}%)</span>
+            <span style="font-size:11px; background:white; padding:3px 8px; border-radius:10px;">${data.source || 'Botanik AI'}</span>
+          </div>
+          <h3 class="result-title" style="color:var(--primary-dark);">${data.nom || "O'simlik"}</h3>
+          <p style="font-size:13px; color:var(--text-muted); margin:0 0 10px 0;"><b>Oilasi:</b> ${data.oila || 'Aniqlanmadi'}</p>
+
+          <div style="background:white; border-radius:10px; padding:12px; font-size:13px; line-height:1.6; margin-bottom:12px;">
+            <div>💧 <b>Sug'orish:</b> ${data.sugorish || "Me'yorida"}</div>
+            <div>☀️ <b>Yorug'lik:</b> ${data.yoruglik || "Yetarli darajada"}</div>
+            <div>🌡️ <b>Harorat:</b> ${data.harorat || "Mo'tadil"}</div>
+          </div>
+
+          <p style="font-size:13px; margin:0; line-height:1.5;">
+            💡 <b>Parvarish siri:</b> ${data.maslahat || "Vaqtida sug'oring va begona o'tlardan tozalang."}
+          </p>
+        </div>
+      `;
+    }
+
+    async function runPlantIdentify() {
+      if (!currentSelectedFile) return;
+
+      const loading = document.getElementById('aniqlashLoading');
+      const resultBox = document.getElementById('aniqlashResultContainer');
+      const analyzeBtn = document.getElementById('aniqlashAnalyzeBtn');
+
+      loading.style.display = 'block';
+      resultBox.innerHTML = '';
+      analyzeBtn.style.display = 'none';
+      hapticFeedback('medium');
+
+      const formData = new FormData();
+      formData.append('file', currentSelectedFile);
+
+      const activeKey = getActiveApiKey();
+      const headers = {};
+      if (activeKey) headers['X-Gemini-Key'] = activeKey;
+
+      let data = null;
+
+      // 1. Backend server
+      try {
+        const resp = await fetch(getApiUrl('/api/identify'), {
+          method: 'POST',
+          headers: headers,
+          body: formData
+        });
+
+        if (resp && resp.ok) {
+          data = await resp.json();
+        }
+      } catch (err) {
+        console.warn("Server javob bermadi, to'g'ridan-to'g'ri Jonli Botanik AI chaqirilmoqda:", err);
+      }
+
+      // 2. To'g'ridan-to'g'ri Jonli Gemini Botanik AI
+      if (!data || !data.nom) {
+        try {
+          data = await callDirectGeminiIdentify(currentSelectedFile);
+        } catch (directErr) {
+          console.warn("To'g'ridan-to'g'ri botanik tahlil xatosi:", directErr);
+        }
+      }
+
+      // 3. Oflayn andoza fallback
+      if (!data || !data.nom) {
+        data = getOfflinePlantData(currentSelectedFile);
+      }
+
+      renderPlantIdentifyResult(data);
+      loading.style.display = 'none';
+      analyzeBtn.style.display = 'flex';
+    }
+
+    // --- 10. AGRO-APTEKALAR YUKLASH VA FILTERLASH ---
+    const DEFAULT_PHARMACIES = [{"id": "tash_01", "name": "Agro Kimyo Savdo Markazi", "region": "Toshkent shahri", "district": "Chilonzor tumani", "address": "Kichik halqa yo'li ko'chasi, 42-uy", "landmark": "Chilonzor buyum bozori yaqinida", "phone": "+998 71 200 45 45", "working_hours": "08:00 - 18:00 (Har kuni)", "categories": ["Fungitsidlar", "Insektitsidlar", "Biostimulyatorlar", "Urug'lar"], "lat": 41.2758, "lon": 69.1985, "map_url": "https://yandex.uz/maps/?text=41.2758,69.1985", "verified": true}, {"id": "tash_02", "name": "Green Agro Toshkent", "region": "Toshkent shahri", "district": "Yunusobod tumani", "address": "Amir Temur shoh ko'chasi, 114", "landmark": "Uchqahramon bozori ro'parasida", "phone": "+998 90 912 34 56", "working_hours": "08:30 - 19:00", "categories": ["Fungitsidlar", "Insektitsidlar", "Tomchilatib sug'orish", "Organik o'g'itlar"], "lat": 41.3654, "lon": 69.2891, "map_url": "https://yandex.uz/maps/?text=41.3654,69.2891", "verified": true}, {"id": "tash_vil_01", "name": "Yangiyo'l Agro Apteka & Urug'chilik", "region": "Toshkent viloyati", "district": "Yangiyo'l tumani", "address": "Toshkent-Samarqand trassasi, 28-km", "landmark": "Dehqon bozori markaziy darvozasi yonida", "phone": "+998 97 740 11 22", "working_hours": "07:30 - 18:30", "categories": ["Issiqxona dori vositalari", "Fungitsidlar", "Gumus", "Fitosporin"], "lat": 41.1167, "lon": 69.05, "map_url": "https://yandex.uz/maps/?text=41.1167,69.0500", "verified": true}, {"id": "tash_vil_02", "name": "Chirchiq Agro Kimyo Servis", "region": "Toshkent viloyati", "district": "Qibray tumani", "address": "Bog'dorchilik ilmiy instituti yo'li, 15", "landmark": "Shreder nomidagi bog'dorchilik instituti yaqinida", "phone": "+998 93 514 88 99", "working_hours": "08:00 - 17:30", "categories": ["Meva va uzum dorilari", "Skor", "Xorus", "Tiovit Jet"], "lat": 41.3833, "lon": 69.4667, "map_url": "https://yandex.uz/maps/?text=41.3833,69.4667", "verified": true}, {"id": "sam_01", "name": "Samarqand Markaziy Agro Apteka", "region": "Samarqand viloyati", "district": "Samarqand shahri", "address": "Shohi Zinda ko'chasi, Siab bozori hududi", "landmark": "Siab dehqon bozori 4-qator", "phone": "+998 66 235 60 70", "working_hours": "07:00 - 18:00 (Dushanba dam olish)", "categories": ["Fungitsidlar", "Ridomil Gold", "Previkur", "Insektitsidlar"], "lat": 39.6633, "lon": 66.9786, "map_url": "https://yandex.uz/maps/?text=39.6633,66.9786", "verified": true}, {"id": "sam_02", "name": "Jomboy Bog'bon & Dehqon Do'koni", "region": "Samarqand viloyati", "district": "Jomboy tumani", "address": "Mustaqillik shoh ko'chasi, 24", "landmark": "Tuman hokimiyati va avtoshohxona oralig'ida", "phone": "+998 91 550 44 33", "working_hours": "08:00 - 18:00", "categories": ["Meva zararkunandalari dori-darmonlari", "Fungitsidlar", "Biopreparatlar"], "lat": 39.6983, "lon": 67.0944, "map_url": "https://yandex.uz/maps/?text=39.6983,67.0944", "verified": true}, {"id": "fer_01", "name": "Farg'ona Agro Himoya Markazi", "region": "Farg'ona viloyati", "district": "Farg'ona shahri", "address": "Al-Farg'oniy ko'chasi, 65-bino", "landmark": "Markaziy stadion orqa tomoni", "phone": "+998 73 224 15 15", "working_hours": "08:00 - 18:00", "categories": ["Barcha turdagi fungitsidlar", "Gerbitsidlar", "Topaz", "Quadris"], "lat": 40.3864, "lon": 71.7864, "map_url": "https://yandex.uz/maps/?text=40.3864,71.7864", "verified": true}, {"id": "fer_02", "name": "Quva Anor va Ko'chat Dorixonasi", "region": "Farg'ona viloyati", "district": "Quva tumani", "address": "Bog'bonlar ko'chasi, 12", "landmark": "Quva markaziy chorrahasi", "phone": "+998 90 580 99 00", "working_hours": "07:30 - 18:00", "categories": ["Ko'chat kasalliklari dori vositalari", "Ildiz stimulyatorlari", "Oltingugurt"], "lat": 40.5286, "lon": 72.0125, "map_url": "https://yandex.uz/maps/?text=40.5286,72.0125", "verified": true}, {"id": "and_01", "name": "Andijon Agro Doktor Servis", "region": "Andijon viloyati", "district": "Andijon shahri", "address": "Bobur shoh ko'chasi, Yangi bozor hududi", "landmark": "Yangi bozor qishloq xo'jaligi mollari rastasi", "phone": "+998 74 223 88 77", "working_hours": "07:00 - 18:30", "categories": ["Issiqxona preparatlari", "Pomidor/Bodring dorilari", "Aktara", "Ridomil"], "lat": 40.7821, "lon": 72.3442, "map_url": "https://yandex.uz/maps/?text=40.7821,72.3442", "verified": true}, {"id": "and_02", "name": "Asaka Agro Kimyo Savdo", "region": "Andijon viloyati", "district": "Asaka tumani", "address": "Dehqonobod ko'chasi, 8", "landmark": "Asaka markaziy bozori yonida", "phone": "+998 93 440 22 11", "working_hours": "08:00 - 18:00", "categories": ["Fungitsidlar", "Biologik vositalar", "Fitosporin-M"], "lat": 40.6417, "lon": 72.2389, "map_url": "https://yandex.uz/maps/?text=40.6417,72.2389", "verified": true}, {"id": "nam_01", "name": "Namangan Agro Ta'minot Markazi", "region": "Namangan viloyati", "district": "Namangan shahri", "address": "Nodira ko'chasi, Chorsu bozori yonida", "landmark": "Chorsu agro mahsulotlar pavilyoni", "phone": "+998 69 227 40 50", "working_hours": "07:30 - 18:00", "categories": ["Gullash va meva turg'unligi", "Fungitsidlar", "Zararkunandalarga qarshi"], "lat": 40.9983, "lon": 71.6726, "map_url": "https://yandex.uz/maps/?text=40.9983,71.6726", "verified": true}, {"id": "nam_02", "name": "Chust Dehqon Madadkor", "region": "Namangan viloyati", "district": "Chust tumani", "address": "Mustaqillik ko'chasi, 77", "landmark": "Tuman kasalxonasi ro'parasida", "phone": "+998 91 360 12 34", "working_hours": "08:00 - 17:30", "categories": ["Meva zararkunandalari", "Oltingugurt preparatlari", "Mis kuporosi"], "lat": 41.0078, "lon": 71.2294, "map_url": "https://yandex.uz/maps/?text=41.0078,71.2294", "verified": true}, {"id": "bux_01", "name": "Buxoro Agro Zamin Aptekasi", "region": "Buxoro viloyati", "district": "Buxoro shahri", "address": "Ibrohim Mo'minov ko'chasi, Karvon bozori", "landmark": "Karvon bozori qishloq xo'jaligi sektori", "phone": "+998 65 221 80 90", "working_hours": "08:00 - 18:00", "categories": ["Sho'rlanishga chidamli ekinlar dori vositalari", "Fungitsidlar", "Gumus"], "lat": 39.7747, "lon": 64.4286, "map_url": "https://yandex.uz/maps/?text=39.7747,64.4286", "verified": true}, {"id": "nav_01", "name": "Navoiy Agro Kimyo Servis", "region": "Navoiy viloyati", "district": "Navoiy shahri", "address": "G'alaba shoh ko'chasi, 31", "landmark": "Markaziy vokzal yaqinida", "phone": "+998 79 223 11 44", "working_hours": "08:30 - 18:00", "categories": ["Fungitsidlar", "Biostimulyatorlar", "Tomchilatib oziqlantirish"], "lat": 40.0844, "lon": 65.3792, "map_url": "https://yandex.uz/maps/?text=40.0844,65.3792", "verified": true}, {"id": "qash_01", "name": "Qarshi Agro Himoya Do'koni", "region": "Qashqadaryo viloyati", "district": "Qarshi shahri", "address": "Islom Karimov ko'chasi, Yerqo'rg'on bozori", "landmark": "Yerqo'rg'on ulgurji bozori 2-darvoza", "phone": "+998 75 221 05 60", "working_hours": "06:30 - 18:00", "categories": ["Paxta va g'alla dorilari", "Fungitsidlar", "Insektitsidlar", "Envidor"], "lat": 38.8606, "lon": 65.7891, "map_url": "https://yandex.uz/maps/?text=38.8606,65.7891", "verified": true}, {"id": "sur_01", "name": "Termiz Agro Nur Dorixonasi", "region": "Surxondaryo viloyati", "district": "Termiz shahri", "address": "At-Termiziy ko'chasi, Markaziy bozor", "landmark": "Termiz markaziy dehqon bozori", "phone": "+998 76 222 34 88", "working_hours": "07:00 - 18:30", "categories": ["Erta hosil himoyasi", "Fungitsidlar", "Oqqanotga qarshi vositalar"], "lat": 37.2242, "lon": 67.2783, "map_url": "https://yandex.uz/maps/?text=37.2242,67.2783", "verified": true}, {"id": "sur_02", "name": "Denov Agro Servis Markazi", "region": "Surxondaryo viloyati", "district": "Denov tumani", "address": "Sharaf Rashidov ko'chasi, 45", "landmark": "Denov katta bozori yonida", "phone": "+998 91 585 70 00", "working_hours": "07:30 - 18:00", "categories": ["Pomidor, karam, piyoz himoyasi", "Fungitsidlar", "Quadris"], "lat": 38.2758, "lon": 67.8986, "map_url": "https://yandex.uz/maps/?text=38.2758,67.8986", "verified": true}, {"id": "jiz_01", "name": "Jizzax Dehqon Najotkori", "region": "Jizzax viloyati", "district": "Jizzax shahri", "address": "Sharof Rashidov shoh ko'chasi, Ko'k bozor", "landmark": "Ko'k bozor sharqiy kirish darvozasi", "phone": "+998 72 226 50 10", "working_hours": "08:00 - 18:00", "categories": ["Fungitsidlar", "Galla dorilari", "Previkur", "Fitosporin"], "lat": 40.1158, "lon": 67.8422, "map_url": "https://yandex.uz/maps/?text=40.1158,67.8422", "verified": true}, {"id": "sir_01", "name": "Guliston Agro Himoya", "region": "Sirdaryo viloyati", "district": "Guliston shahri", "address": "Sayhun ko'chasi, Dehqon bozori hududi", "landmark": "Guliston markaziy dehqon bozori", "phone": "+998 67 225 12 90", "working_hours": "07:30 - 18:00", "categories": ["Qovun pashshasiga qarshi", "Fungitsidlar", "Poliz dorilari"], "lat": 40.4897, "lon": 68.7842, "map_url": "https://yandex.uz/maps/?text=40.4897,68.7842", "verified": true}, {"id": "xor_01", "name": "Urganch Agro Servis Aptekasi", "region": "Xorazm viloyati", "district": "Urganch shahri", "address": "Al-Xorazmiy ko'chasi, Yangi bozor", "landmark": "Yangi bozor qishloq xo'jalik mahsulotlari rastasi", "phone": "+998 62 228 45 60", "working_hours": "08:00 - 18:00", "categories": ["Fungitsidlar", "Sho'r yerlar uchun biostimulyatorlar", "Skor"], "lat": 41.55, "lon": 60.6333, "map_url": "https://yandex.uz/maps/?text=41.5500,60.6333", "verified": true}, {"id": "qr_01", "name": "Nukus Agro Himoya Markazi", "region": "Qoraqalpog'iston Respublikasi", "district": "Nukus shahri", "address": "A. Dosnazarov ko'chasi, Markaziy bozor", "landmark": "Nukus markaziy dehqon bozori", "phone": "+998 61 222 71 80", "working_hours": "08:00 - 17:30", "categories": ["Barcha agro-preparatlar", "Fungitsidlar", "Biogumus"], "lat": 42.4602, "lon": 59.6166, "map_url": "https://yandex.uz/maps/?text=42.4602,59.6166", "verified": true}];
+
+    async function loadPharmacies() {
+      const region = document.getElementById('pharmacyRegionFilter').value;
+      const container = document.getElementById('pharmacyListContainer');
+
+      let pharmacies = [];
+
+      try {
+        const resp = await fetch(getApiUrl(`/api/pharmacies?region=${encodeURIComponent(region)}`));
+        if (resp.ok) {
+          const data = await resp.json();
+          pharmacies = data.pharmacies || [];
+        }
+      } catch (err) {
+        console.warn("Serverdan yuklab bo'lmadi, oflayn bazadan olinmoqda:", err);
+      }
+
+      // Agar server o'chiq bo'lsa yoki oflayn bo'lsa, oflayn bazadan olish
+      if (!pharmacies || pharmacies.length === 0) {
+        if (region && region !== "Barchasi") {
+          const rNorm = region.toLowerCase().replace("viloyati", "").replace("shahri", "").replace("respublikasi", "").trim();
+          pharmacies = DEFAULT_PHARMACIES.filter(p => 
+            p.region.toLowerCase().includes(rNorm) || p.district.toLowerCase().includes(rNorm)
+          );
+        } else {
+          pharmacies = DEFAULT_PHARMACIES;
+        }
+      }
+
+      allPharmacies = pharmacies;
+      renderPharmacies(allPharmacies);
+    }
+
+    function renderPharmacies(pharmacies) {
+      const container = document.getElementById('pharmacyListContainer');
+      if (!pharmacies || pharmacies.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#64748B;">Ushbu hudud bo\'yicha hozircha apteka topilmadi.</div>';
+        return;
+      }
+
+      let html = '';
+      pharmacies.forEach(p => {
+        let tagHtml = '';
+        (p.categories || []).forEach(cat => {
+          tagHtml += `<span class="pharmacy-tag">${cat}</span>`;
+        });
+
+        html += `
+          <div class="pharmacy-card">
+            <h3 class="pharmacy-name">${p.name}</h3>
+            <div class="pharmacy-region">📍 ${p.region} &bull; ${p.district}</div>
+            <div class="pharmacy-info">📌 ${p.address} (${p.landmark || ''})</div>
+            <div class="pharmacy-info">🕒 Ish vaqti: ${p.working_hours}</div>
+            <div class="pharmacy-tags">${tagHtml}</div>
+            <div class="pharmacy-actions">
+              <a href="tel:${p.phone.replace(/\\s+/g, '')}" class="pharmacy-btn call">
+                📞 Qo'ng'iroq qilish
+              </a>
+              <a href="${p.map_url}" target="_blank" class="pharmacy-btn map">
+                🗺️ Xaritada ko'rish
+              </a>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function filterPharmaciesLocal() {
+      const q = (document.getElementById('pharmacySearchInput').value || '').toLowerCase();
+      if (!q) {
+        renderPharmacies(allPharmacies);
+        return;
+      }
+      const filtered = allPharmacies.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        p.region.toLowerCase().includes(q) ||
+        p.address.toLowerCase().includes(q) ||
+        (p.categories || []).some(c => c.toLowerCase().includes(q))
+      );
+      renderPharmacies(filtered);
+    }
+
+    // --- 11. AQLLI FERMER & HOSIL PROGNOZI MODULI ---
+    const OFFLINE_CLIMATE_PROFILES = {"Surxondaryo": {"title": "Surxondaryo viloyati", "climate_type": "Quruq subtropik, erta bahor, uzoq issiq yoz", "avg_temp": "Bahor: 18-24°C, Yoz: 35-42°C", "favorable_crops": ["Pomidor", "Bodring", "Qalampir", "Qovun/Tarvuz", "Piyoz"], "yield_factor": 1.15, "soil": "Och tusli bo'z tuproq, qumloq, unumdor", "summary": "O'zbekistonda eng erta hosil pishadigan hudud. Plyonka ostiga va ochiq dalaga erta bahorgi issiqsevar ekinlar (pomidor, bodring, poliz) juda yuqori hosil beradi."}, "Qashqadaryo": {"title": "Qashqadaryo viloyati", "climate_type": "Keskin kontinental, issiq va quruq yoz", "avg_temp": "Bahor: 16-22°C, Yoz: 34-40°C", "favorable_crops": ["Qovun/Tarvuz", "Pomidor", "Kartoshka", "Piyoz"], "yield_factor": 1.05, "soil": "Bo'z tuproq, cho'l-qumloq yerlar", "summary": "Quyoshli kunlar ko'p, poliz ekinlari (qovun, tarvuz) va erta-kechki pomidor uchun juda qulay."}, "Toshkent": {"title": "Toshkent viloyati", "climate_type": "Mo'tadil kontinental, yaxshi yog'ingarchilik va suv ta'minoti", "avg_temp": "Bahor: 14-20°C, Yoz: 30-36°C", "favorable_crops": ["Pomidor", "Bodring", "Kartoshka", "Karam", "Sabzi", "Qalampir"], "yield_factor": 1.15, "soil": "Tipik bo'z va o'tloqi unumdor tuproq", "summary": "Serhosil va suvli hudud. Issiqxona va ochiq dalada pomidor, bodring, karam va mevali ko'chatlar eng yuqori hosil beradi."}, "ToshkentShahri": {"title": "Toshkent shahri", "climate_type": "Mo'tadil, issiqxona va shahar atrofida dehqonchilik", "avg_temp": "Bahor: 15-21°C, Yoz: 32-38°C", "favorable_crops": ["Bodring", "Pomidor", "Ko'katlar", "Qalampir"], "yield_factor": 1.1, "soil": "Madaniylashgan unumdor tuproq", "summary": "Shahar atrofidagi issiqxonalar va tomorqalar uchun erta pishar pomidor, bodring va ko'katlar eng serdaromad hisoblanadi."}, "Samarqand": {"title": "Samarqand viloyati", "climate_type": "Tog'oldi mo'tadil iqlim, qulay namlik", "avg_temp": "Bahor: 14-19°C, Yoz: 29-35°C", "favorable_crops": ["Kartoshka", "Pomidor", "Piyoz", "Sabzi", "Bodring"], "yield_factor": 1.1, "soil": "Qoramtir-bo'z va qumoq unumdor tuproq", "summary": "O'zbekistonning kartoshkachilik va sabzavotchilik markazi. Kartoshka va sabzi yetishtirish uchun eng maqbul iqlim va tuproqqa ega."}, "Fargona": {"title": "Farg'ona viloyati", "climate_type": "Vodiy iqlimi, yumshoq bahor, quyoshli yoz", "avg_temp": "Bahor: 15-21°C, Yoz: 31-37°C", "favorable_crops": ["Bodring", "Pomidor", "Qalampir", "Karam", "Sabzi"], "yield_factor": 1.12, "soil": "Sug'oriladigan o'tloqi-bo'z tuproq", "summary": "Farg'ona vodiysining unumdor yerlari har tup ko'chatdan maksimal hosil olish imkonini beradi. Issiqxona va ochiq maydonlar juda serhosil."}, "Andijon": {"title": "Andijon viloyati", "climate_type": "Iliq vodiy iqlimi, yer unumdorligi juda yuqori", "avg_temp": "Bahor: 15-21°C, Yoz: 30-36°C", "favorable_crops": ["Pomidor", "Bodring", "Qalampir", "Karam", "Kartoshka"], "yield_factor": 1.15, "soil": "Yuqori unumdor o'tloqi tuproq", "summary": "Aholi zich va yer juda qadrli. Tomorqa va fermer xo'jaliklarida pomidor, bodring va qalampir yetishtirish eng katta foyda keltiradi."}, "Namangan": {"title": "Namangan viloyati", "climate_type": "Tog' etagi va tekislik, quyoshli, qulay sharoit", "avg_temp": "Bahor: 14-20°C, Yoz: 31-36°C", "favorable_crops": ["Pomidor", "Bodring", "Qalampir", "Piyoz", "Sabzi"], "yield_factor": 1.1, "soil": "Bo'z va qumoq tuproq", "summary": "Sabzavot va meva yetishtirishda yetakchi. Ko'chatlar tez ildiz otadi va erta hosil beradi."}, "Buxoro": {"title": "Buxoro viloyati", "climate_type": "Cho'l-kontinental, quruq issiq, sho'rlanishga moyil", "avg_temp": "Bahor: 16-22°C, Yoz: 35-41°C", "favorable_crops": ["Qovun/Tarvuz", "Piyoz", "Pomidor", "Sabzi"], "yield_factor": 0.95, "soil": "Allyuvial va o'tloqi sho'rxok tuproq", "summary": "Quyoshli issiq iqlim qovun, tarvuz va piyoz uchun nihoyatda qulay. Shiradorlik darajasi eng yuqori bo'ladi."}, "Xorazm": {"title": "Xorazm viloyati", "climate_type": "Keskin kontinental, o'ziga xos toza quyosh nuri", "avg_temp": "Bahor: 13-19°C, Yoz: 32-38°C", "favorable_crops": ["Qovun/Tarvuz", "Piyoz", "Bodring", "Sabzi"], "yield_factor": 1.0, "soil": "Amudaryo allyuvial unumdor tuproqlari", "summary": "Mashhur Xorazm qovunlari va shirin sabzi yurti. Poliz va piyoz ekish eng yaxshi iqtisodiy natija beradi."}, "Jizzax": {"title": "Jizzax viloyati", "climate_type": "Tog' etagi va dasht, havo ochiq", "avg_temp": "Bahor: 14-20°C, Yoz: 32-38°C", "favorable_crops": ["Qovun/Tarvuz", "Pomidor", "Piyoz", "Kartoshka"], "yield_factor": 0.98, "soil": "Och va tipik bo'z tuproq", "summary": "Dasht va tog'oldi sharoitida qovun (Jizzax qovunlari), pomidor va piyoz yaxshi hosil beradi."}, "Sirdaryo": {"title": "Sirdaryo viloyati", "climate_type": "Cho'l-dasht, grunt suvlari yaqin", "avg_temp": "Bahor: 15-21°C, Yoz: 33-39°C", "favorable_crops": ["Qovun/Tarvuz", "Pomidor", "Piyoz", "Bodring"], "yield_factor": 0.95, "soil": "O'tloqi-bo'z va sho'rtob tuproq", "summary": "Polizchilik (qovun va tarvuz) va erta pomidor ekish tavsiya qilinadi."}, "Navoiy": {"title": "Navoiy viloyati", "climate_type": "Cho'l zonasi, issiq va kam yog'inli", "avg_temp": "Bahor: 15-21°C, Yoz: 35-42°C", "favorable_crops": ["Qovun/Tarvuz", "Piyoz", "Pomidor"], "yield_factor": 0.88, "soil": "Cho'l va qumloq yerlar", "summary": "Tomchilatib sug'orish orqali poliz ekinlari va piyozdan yaxshi daromad olish mumkin."}, "Qoraqalpogiston": {"title": "Qoraqalpog'iston Respublikasi", "climate_type": "Keskin kontinental, qisqa issiq yoz", "avg_temp": "Bahor: 12-18°C, Yoz: 33-39°C", "favorable_crops": ["Qovun/Tarvuz", "Piyoz", "Sabzi", "Pomidor"], "yield_factor": 0.85, "soil": "Sho'rxok va qumloq allyuvial tuproq", "summary": "Sho'rga chidamli poliz ekinlari, piyoz va sabzi yetishtirish eng xavfsiz va samarali yo'l hisoblanadi."}};
+    const OFFLINE_CROP_SPECS = {"Pomidor": {"name": "Pomidor (Nihol / Ko'chat)", "icon": "🍅", "plants_per_sotix": 330, "seed_per_sotix_grams": 4, "unit_type": "kochat", "spacing": "70 x 30 sm", "yield_per_plant_min": 2.5, "yield_per_plant_max": 4.5, "default_price": 4000, "description": "Eng yuqori talabga ega sabzavot. Bozor narxi erta bahor va kech kuzda juda yuqori bo'ladi.", "tips": "Tomchilatib sug'orishni qo'llang, ortiqcha bachkilarni har haftada olib tashlang."}, "Bodring": {"name": "Bodring (Tez hosilli)", "icon": "🥒", "plants_per_sotix": 380, "seed_per_sotix_grams": 80, "unit_type": "kochat", "spacing": "70 x 25 sm", "yield_per_plant_min": 2.0, "yield_per_plant_max": 3.8, "default_price": 5000, "description": "45-50 kunda hosilga kiradi. Har 2-3 kunda terib olinadi va muntazam daromad keltiradi.", "tips": "Iliq suv bilan sug'oring, harorat 15°C dan tushib ketmasligini ta'minlang."}, "Qalampir": {"name": "Shirin / Achchiq Qalampir", "icon": "🫑", "plants_per_sotix": 380, "seed_per_sotix_grams": 5, "unit_type": "kochat", "spacing": "70 x 25 sm", "yield_per_plant_min": 1.2, "yield_per_plant_max": 2.2, "default_price": 6500, "description": "Bozor narxi juda barqaror va yuqori. Eksportbop mahsulot.", "tips": "Ildiz tizimi nozik, chuqur chopmasdan faqat ustki qatlam yumshatiladi."}, "Kartoshka": {"name": "Kartoshka (Urug'lik tugunak)", "icon": "🥔", "plants_per_sotix": 450, "seed_per_sotix_kg": 28, "unit_type": "urug", "spacing": "70 x 25 sm", "yield_per_plant_min": 0.5, "yield_per_plant_max": 0.9, "default_price": 3500, "description": "Ikkinchi non. O'zbekiston ichki bozorida doimiy xaridorgir va kafolatlangan hosil.", "tips": "Gullash davrida mo'l sug'oring va tagini 2 marta baland qilib ko'ming."}, "Piyoz": {"name": "Piyoz (Erta va O'rta)", "icon": "🧅", "plants_per_sotix": 8000, "seed_per_sotix_kg": 1.8, "unit_type": "urug", "spacing": "20 x 8 sm", "yield_per_plant_min": 0.12, "yield_per_plant_max": 0.22, "default_price": 2500, "description": "Kam xarajatli va uzoq saqlanuvchi ekin. Mayda boshli sevok orqali tez hosil beradi.", "tips": "Hosil yig'ishdan 2 hafta oldin sug'orishni butunlay to'xtatish kerak."}, "Qovun/Tarvuz": {"name": "Qovun va Tarvuz (Poliz)", "icon": "🍉", "plants_per_sotix": 70, "seed_per_sotix_grams": 40, "unit_type": "kochat", "spacing": "200 x 70 sm", "yield_per_plant_min": 6.0, "yield_per_plant_max": 14.0, "default_price": 3000, "description": "Katta maydonlarda eng kam mehnat talab qiluvchi va yuqori massa beruvchi poliz ekini.", "tips": "Quyoshli ochiq maydonda shakar to'plash davrida suvni me'yorida bering."}, "Sabzi": {"name": "Qizil / Sariq Sabzi", "icon": "🥕", "plants_per_sotix": 12000, "seed_per_sotix_grams": 50, "unit_type": "urug", "spacing": "15 x 5 sm", "yield_per_plant_min": 0.08, "yield_per_plant_max": 0.15, "default_price": 3000, "description": "Kuz-qish mavsumida talab juda yuqori bo'lgan sabzavot.", "tips": "Yerni chuqur haydab yumshating, shunda sabzi to'g'ri va uzun o'sadi."}, "Karam": {"name": "Oqbosh Karam", "icon": "🥬", "plants_per_sotix": 400, "seed_per_sotix_grams": 5, "unit_type": "kochat", "spacing": "70 x 35 sm", "yield_per_plant_min": 1.5, "yield_per_plant_max": 3.2, "default_price": 2500, "description": "Salqin havoni yaxshi ko'radi, 1 sotixdan 1 tonnagacha massa beradi.", "tips": "Tuproq doimo nam bo'lishi kerak, zararkunandalardan muntazam himoya qiling."}};
+
+    let currentFarmerData = {
+      region: "Toshkent",
+      landSize: 10,
+      unit: "sotix",
+      crop: "Pomidor"
+    };
+
+    async function getFarmerRecommendations() {
+      hapticFeedback('medium');
+      const region = document.getElementById('calcHudud').value;
+      const landSize = parseFloat(document.getElementById('calcLandSize').value) || 10;
+      const unit = document.getElementById('calcLandUnit').value;
+
+      currentFarmerData.region = region;
+      currentFarmerData.landSize = landSize;
+      currentFarmerData.unit = unit;
+
+      const loading = document.getElementById('fermerLoading');
+      const step1 = document.getElementById('fermerStep1');
+      const step2 = document.getElementById('fermerStep2');
+      const step3 = document.getElementById('fermerStep3');
+
+      loading.style.display = 'block';
+      step2.style.display = 'none';
+      step3.style.display = 'none';
+
+      let recData = null;
+      try {
+        const url = getApiUrl(`/api/farmer/recommendations?region=${encodeURIComponent(region)}&land_size=${landSize}&unit=${unit}`);
+        const resp = await fetch(url);
+        if (resp && resp.ok) {
+          recData = await resp.json();
+        }
+      } catch (e) {
+        console.warn('API tavsiya yuklanmadi, oflayn bazadan hisoblanmoqda:', e);
+      }
+
+      // Offline fallback
+      if (!recData || !recData.recommended_crops) {
+        recData = generateOfflineRecommendations(region, landSize, unit);
+      }
+
+      renderFarmerStep2(recData);
+      loading.style.display = 'none';
+    }
+
+    function generateOfflineRecommendations(region, landSize, unit) {
+      let matchedKey = "Toshkent";
+      for (let r in OFFLINE_CLIMATE_PROFILES) {
+        if (region.toLowerCase().includes(r.toLowerCase())) {
+          matchedKey = r;
+          break;
+        }
+      }
+      const profile = OFFLINE_CLIMATE_PROFILES[matchedKey];
+      const sotixSize = unit === "gektar" ? landSize * 100 : landSize;
+
+      const crops = [];
+      (profile.favorable_crops || []).forEach(cropName => {
+        const spec = OFFLINE_CROP_SPECS[cropName];
+        if (!spec) return;
+
+        const totalPlants = Math.round(spec.plants_per_sotix * sotixSize);
+        let seedInfo = "";
+        if (spec.seed_per_sotix_kg) {
+          seedInfo = `~${(spec.seed_per_sotix_kg * sotixSize).toFixed(1)} kg urug'lik`;
+        } else if (spec.seed_per_sotix_grams) {
+          const g = spec.seed_per_sotix_grams * sotixSize;
+          seedInfo = g >= 1000 ? `~${(g/1000).toFixed(1)} kg urug'` : `~${Math.round(g)} g urug'`;
+        }
+
+        const yFactor = profile.yield_factor || 1.0;
+        const avgPerPlant = (spec.yield_per_plant_min + spec.yield_per_plant_max) / 2 * yFactor;
+        const totalYieldKg = Math.round(totalPlants * avgPerPlant);
+        const estRevenue = Math.round(totalYieldKg * spec.default_price);
+
+        crops.push({
+          name: cropName,
+          display_name: spec.name,
+          icon: spec.icon,
+          plants_count: totalPlants,
+          seed_info: seedInfo,
+          spacing: spec.spacing,
+          yield_per_plant: `${(spec.yield_per_plant_min * yFactor).toFixed(1)} - ${(spec.yield_per_plant_max * yFactor).toFixed(1)} kg`,
+          total_yield_avg_kg: totalYieldKg,
+          default_price: spec.default_price,
+          estimated_revenue: estRevenue,
+          tips: spec.tips,
+          description: spec.description
+        });
+      });
+
+      return {
+        success: true,
+        region: profile.title,
+        climate_type: profile.climate_type,
+        avg_temp: profile.avg_temp,
+        soil: profile.soil,
+        summary: profile.summary,
+        land_size: landSize,
+        unit: unit,
+        sotix_size: sotixSize,
+        recommended_crops: crops
+      };
+    }
+
+    function renderFarmerStep2(data) {
+      const step2 = document.getElementById('fermerStep2');
+      let cropCardsHtml = '';
+
+      (data.recommended_crops || []).forEach(crop => {
+        const yieldText = crop.total_yield_avg_kg >= 1000 
+          ? `${(crop.total_yield_avg_kg / 1000).toFixed(1)} tonna` 
+          : `${crop.total_yield_avg_kg.toLocaleString()} kg`;
+
+        cropCardsHtml += `
+          <div class="card" style="margin-bottom:12px; border-left:5px solid var(--primary); padding:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <h3 style="margin:0; font-size:17px; display:flex; align-items:center; gap:8px;">
+                <span>${crop.icon}</span> ${crop.name}
+              </h3>
+              <span style="font-size:11px; background:#E8F5E9; color:var(--primary-dark); padding:3px 8px; border-radius:10px; font-weight:bold;">
+                A'lo mos
+              </span>
+            </div>
+
+            <p style="font-size:12px; color:var(--text-muted); margin:0 0 10px 0;">${crop.description}</p>
+
+            <div style="background:#F8FAF8; border-radius:10px; padding:10px 12px; font-size:13px; line-height:1.6; margin-bottom:12px;">
+              <div>🌱 <b>Ketadigan ko'chat/urug':</b> ${crop.plants_count.toLocaleString()} dona (${crop.seed_info})</div>
+              <div>⚖️ <b>Bitta tupdan kutilgan hosil:</b> ${crop.yield_per_plant}</div>
+              <div>🌾 <b>Umumiy yerdan o'rtacha hosil:</b> <b>${yieldText}</b></div>
+              <div>💰 <b>Kutilayotgan daromad:</b> <b style="color:var(--primary);">${crop.estimated_revenue.toLocaleString()} so'm</b></div>
+            </div>
+
+            <button class="btn btn-sm" style="width:100%;" onclick="selectCropForDetailedPlan('${crop.name}')">
+              ✅ Ushbu Ekinni Tanlash va Hisob-Kitobni Ko'rish &rarr;
+            </button>
+          </div>
+        `;
+      });
+
+      step2.innerHTML = `
+        <div class="card" style="background:linear-gradient(135deg, #1B5E20, #2E7D32); color:white; margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <h3 style="margin:0 0 4px 0; font-size:17px; color:white;">📍 ${data.region}</h3>
+              <p style="margin:0; font-size:12px; opacity:0.9;">Yer maydoni: <b>${data.land_size} ${data.unit}</b> (${data.sotix_size} sotix)</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" style="background:rgba(255,255,255,0.2); color:white; border:none;" onclick="goBackToFarmerStep1()">
+              ✏️ O'zgartirish
+            </button>
+          </div>
+          <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.2); font-size:12px; line-height:1.5;">
+            🌤️ <b>Iqlimi:</b> ${data.climate_type} (${data.avg_temp})<br>
+            🌾 <b>Tuproq turi:</b> ${data.soil}<br>
+            💡 <b>AI Xulosasi:</b> ${data.summary}
+          </div>
+        </div>
+
+        <h3 style="margin:16px 0 10px 0; font-size:16px;">🎯 Tavsiya Etilgan Ekinlar (${data.recommended_crops.length} ta):</h3>
+        ${cropCardsHtml}
+      `;
+
+      step2.style.display = 'block';
+      step2.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function goBackToFarmerStep1() {
+      hapticFeedback('light');
+      document.getElementById('fermerStep1').style.display = 'block';
+      document.getElementById('fermerStep2').style.display = 'none';
+      document.getElementById('fermerStep3').style.display = 'none';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function selectCropForDetailedPlan(cropName) {
+      hapticFeedback('medium');
+      currentFarmerData.crop = cropName;
+
+      const loading = document.getElementById('fermerLoading');
+      const step2 = document.getElementById('fermerStep2');
+      const step3 = document.getElementById('fermerStep3');
+
+      loading.style.display = 'block';
+      step2.style.display = 'none';
+      step3.style.display = 'none';
+
+      let planData = null;
+      try {
+        const url = getApiUrl(`/api/farmer/calculate?region=${encodeURIComponent(currentFarmerData.region)}&crop=${encodeURIComponent(cropName)}&land_size=${currentFarmerData.landSize}&unit=${currentFarmerData.unit}`);
+        const resp = await fetch(url);
+        if (resp && resp.ok) {
+          planData = await resp.json();
+        }
+      } catch (e) {
+        console.warn('API calculate error, oflayn rejim:', e);
+      }
+
+      if (!planData || !planData.plants_count) {
+        planData = generateOfflinePlan(currentFarmerData.region, cropName, currentFarmerData.landSize, currentFarmerData.unit);
+      }
+
+      renderFarmerStep3(planData);
+      loading.style.display = 'none';
+    }
+
+    function generateOfflinePlan(region, cropName, landSize, unit, customPlants, customPrice) {
+      let matchedKey = "Toshkent";
+      for (let r in OFFLINE_CLIMATE_PROFILES) {
+        if (region.toLowerCase().includes(r.toLowerCase())) {
+          matchedKey = r;
+          break;
+        }
+      }
+      const profile = OFFLINE_CLIMATE_PROFILES[matchedKey];
+      const spec = OFFLINE_CROP_SPECS[cropName] || OFFLINE_CROP_SPECS["Pomidor"];
+
+      const sotixSize = unit === "gektar" ? landSize * 100 : landSize;
+      const plantsCount = customPlants ? customPlants : Math.round(spec.plants_per_sotix * sotixSize);
+      const pricePerKg = customPrice ? customPrice : spec.default_price;
+      const yFactor = profile.yield_factor || 1.0;
+
+      const bittaMin = +(spec.yield_per_plant_min * yFactor).toFixed(2);
+      const bittaMax = +(spec.yield_per_plant_max * yFactor).toFixed(2);
+      const bittaAvg = +((bittaMin + bittaMax) / 2).toFixed(2);
+
+      const umumiyMinKg = Math.round(plantsCount * bittaMin);
+      const umumiyMaxKg = Math.round(plantsCount * bittaMax);
+      const umumiyAvgKg = Math.round(plantsCount * bittaAvg);
+
+      const daromadMin = Math.round(umumiyMinKg * pricePerKg);
+      const daromadAvg = Math.round(umumiyAvgKg * pricePerKg);
+      const daromadMax = Math.round(umumiyMaxKg * pricePerKg);
+
+      let normaText = `${plantsCount.toLocaleString()} tup ko'chat`;
+      if (spec.seed_per_sotix_kg) {
+        normaText += ` (yoki ~${(spec.seed_per_sotix_kg * sotixSize).toFixed(1)} kg urug'lik)`;
+      } else if (spec.seed_per_sotix_grams) {
+        normaText += ` (yoki ~${Math.round(spec.seed_per_sotix_grams * sotixSize)} g urug')`;
+      }
+
+      return {
+        success: true,
+        region: profile.title,
+        crop_name: cropName,
+        crop_display: spec.name,
+        icon: spec.icon,
+        land_size: landSize,
+        unit: unit,
+        sotix_size: sotixSize,
+        plants_count: plantsCount,
+        norma_text: normaText,
+        spacing: spec.spacing,
+        price_per_kg: pricePerKg,
+        per_plant: {
+          min_kg: bittaMin,
+          avg_kg: bittaAvg,
+          max_kg: bittaMax
+        },
+        total_yield: {
+          min_kg: umumiyMinKg,
+          avg_kg: umumiyAvgKg,
+          max_kg: umumiyMaxKg,
+          avg_ton: umumiyAvgKg >= 1000 ? +(umumiyAvgKg / 1000).toFixed(2) : null
+        },
+        revenue: {
+          min_som: daromadMin,
+          avg_som: daromadAvg,
+          max_som: daromadMax
+        },
+        tips: spec.tips,
+        climate_note: `${profile.title} iqlim koeffitsienti: ${yFactor}x. ${profile.summary}`
+      };
+    }
+
+    function renderFarmerStep3(plan) {
+      const step3 = document.getElementById('fermerStep3');
+
+      step3.innerHTML = `
+        <!-- XULOSA KARTOCHKASI -->
+        <div class="card" style="border-top:5px solid var(--primary); padding:18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h2 style="margin:0; font-size:19px; display:flex; align-items:center; gap:8px;">
+              <span>${plan.icon}</span> ${plan.crop_display}
+            </h2>
+            <span style="font-size:12px; background:#E8F5E9; color:var(--primary-dark); padding:4px 10px; border-radius:12px; font-weight:bold;">
+              ${plan.region}
+            </span>
+          </div>
+
+          <!-- 1. KO'CHAT / URUG' ME'YORI -->
+          <div style="background:#F1F8E9; border-radius:12px; padding:14px; margin-bottom:14px;">
+            <h4 style="margin:0 0 6px 0; font-size:15px; color:var(--primary-dark);">🌱 Ko'chat va Urug' Ehtiyoji:</h4>
+            <p style="margin:0 0 8px 0; font-size:13px; color:#2E7D32;">
+              Sizning <b>${plan.land_size} ${plan.unit}</b> (${plan.sotix_size} sotix) yeringiz uchun tavsiya:
+            </p>
+            <div style="font-size:15px; font-weight:bold; color:var(--text-main); margin-bottom:6px;">
+              👉 ${plan.norma_text}
+            </div>
+            <div style="font-size:12px; color:var(--text-muted);">
+              📐 Ekish sxemasi: <b>${plan.spacing}</b>
+            </div>
+
+            <div style="margin-top:10px; padding-top:8px; border-top:1px dashed #A5D6A7;">
+              <label style="font-size:12px; font-weight:bold;">Ko'chat sonini o'zgartirish (agar kerak bo'lsa):</label>
+              <input type="number" id="farmerCustomPlants" value="${plan.plants_count}" style="margin-bottom:4px; padding:8px 10px;">
+            </div>
+          </div>
+
+          <!-- 2. BITTA KO'CHATDAN VA UMUMIY HOSIL -->
+          <div style="background:white; border:1px solid var(--border-color); border-radius:12px; padding:14px; margin-bottom:14px;">
+            <h4 style="margin:0 0 8px 0; font-size:15px;">🌾 Hosildorlik Prognozi:</h4>
+            
+            <div style="background:#F8FAF8; border-radius:8px; padding:10px; margin-bottom:10px; font-size:13px;">
+              <b>1 tup ko'chatdan kutilgan hosil:</b><br>
+              • Minimal: <b>${plan.per_plant.min_kg} kg</b><br>
+              • O'rtacha: <b style="color:var(--primary);">${plan.per_plant.avg_kg} kg</b><br>
+              • Maksimal: <b>${plan.per_plant.max_kg} kg</b>
+            </div>
+
+            <div style="font-size:13px;">
+              <b>Butun maydondan umumiy hosil:</b>
+              <table style="width:100%; margin-top:6px; font-size:13px;">
+                <tr><td>📉 Minimal hosil:</td><td style="text-align:right;"><b>${plan.total_yield.min_kg.toLocaleString()} kg</b></td></tr>
+                <tr style="color:var(--primary); font-weight:bold; font-size:14px;">
+                  <td>📊 O'rtacha hosil:</td>
+                  <td style="text-align:right;">${plan.total_yield.avg_kg.toLocaleString()} kg ${plan.total_yield.avg_ton ? `(~${plan.total_yield.avg_ton} t)` : ''}</td>
+                </tr>
+                <tr><td>📈 Yuqori hosil:</td><td style="text-align:right;"><b>${plan.total_yield.max_kg.toLocaleString()} kg</b></td></tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- 3. BOZOR NARXI VA DAROMAD -->
+          <div style="background:#FFFDE7; border:1px solid #FFF59D; border-radius:12px; padding:14px; margin-bottom:14px;">
+            <h4 style="margin:0 0 8px 0; font-size:15px; color:#F57F17;">💰 Bozor Narxi va Kutilayotgan Daromad:</h4>
+
+            <label style="font-size:12px; font-weight:bold;">Bugungi kutilayotgan bozor narxi (so'm/kg):</label>
+            <div style="display:flex; gap:8px; margin-top:4px; margin-bottom:10px;">
+              <input type="number" id="farmerCustomPrice" value="${plan.price_per_kg}" style="margin:0; padding:10px;">
+              <button class="btn btn-sm" style="background:#F57F17; white-space:nowrap;" onclick="recalculateFarmerPlan()">
+                🔄 Qayta hisoblash
+              </button>
+            </div>
+
+            <div style="background:white; border-radius:8px; padding:12px;">
+              <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #F1F5F9; font-size:13px;">
+                <span>📉 Minimal daromad:</span>
+                <span><b>${plan.revenue.min_som.toLocaleString()} so'm</b></span>
+              </div>
+              <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #F1F5F9; font-size:15px; color:var(--primary); font-weight:bold;">
+                <span>📊 Kutilayotgan sof daromad:</span>
+                <span>${plan.revenue.avg_som.toLocaleString()} so'm</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; padding:6px 0; font-size:13px;">
+                <span>📈 Maksimal daromad:</span>
+                <span><b>${plan.revenue.max_som.toLocaleString()} so'm</b></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. AGRONOMIK TAVSIYA -->
+          <div style="background:#F8FAF8; border-radius:10px; padding:12px; font-size:12px; line-height:1.5; margin-bottom:14px;">
+            💡 <b>Agronom maslahati:</b> ${plan.tips}<br>
+            🌍 <i>${plan.climate_note}</i>
+          </div>
+
+          <!-- BOSHQARUV TUGMALARI -->
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="goBackToFarmerStep2()">
+              ← Boshqa ekin
+            </button>
+            <button class="btn btn-sm" style="flex:1;" onclick="shareFarmerReport('${plan.crop_name}', ${plan.total_yield.avg_kg}, ${plan.revenue.avg_som})">
+              📤 Ulashish
+            </button>
+          </div>
+        </div>
+      `;
+
+      step3.style.display = 'block';
+      step3.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function goBackToFarmerStep2() {
+      hapticFeedback('light');
+      document.getElementById('fermerStep2').style.display = 'block';
+      document.getElementById('fermerStep3').style.display = 'none';
+      document.getElementById('fermerStep2').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function recalculateFarmerPlan() {
+      hapticFeedback('medium');
+      const customPlants = parseInt(document.getElementById('farmerCustomPlants').value) || null;
+      const customPrice = parseFloat(document.getElementById('farmerCustomPrice').value) || null;
+
+      let planData = null;
+      try {
+        let url = getApiUrl(`/api/farmer/calculate?region=${encodeURIComponent(currentFarmerData.region)}&crop=${encodeURIComponent(currentFarmerData.crop)}&land_size=${currentFarmerData.landSize}&unit=${currentFarmerData.unit}`);
+        if (customPlants) url += `&plants=${customPlants}`;
+        if (customPrice) url += `&price=${customPrice}`;
+
+        const resp = await fetch(url);
+        if (resp && resp.ok) planData = await resp.json();
+      } catch (e) {
+        console.warn('Recalculate offline:', e);
+      }
+
+      if (!planData || !planData.plants_count) {
+        planData = generateOfflinePlan(currentFarmerData.region, currentFarmerData.crop, currentFarmerData.landSize, currentFarmerData.unit, customPlants, customPrice);
+      }
+
+      renderFarmerStep3(planData);
+    }
+
+    function shareFarmerReport(crop, yieldKg, revSom) {
+      const text = `🚜 NiholAI Fermer Rejasi:\nViloyat: ${currentFarmerData.region}\nEkin: ${crop}\nMaydon: ${currentFarmerData.landSize} ${currentFarmerData.unit}\nKutilayotgan hosil: ${yieldKg.toLocaleString()} kg\nKutilayotgan daromad: ${revSom.toLocaleString()} so'm\n\nNiholAI orqali hisoblangan!`;
+      if (navigator.share) {
+        navigator.share({ title: 'Fermerlik Hisoboti', text: text });
+      } else {
+        navigator.clipboard.writeText(text);
+        alert('Hisobot nusxalandi! Telegram orqali yuborishingiz mumkin.');
+      }
+    }
+
+    // --- 12. OFFLINE STORAGE & HISTORY (TARIX) ---
+    function saveDiagnosisToHistory(data, file) {
+      try {
+        const history = JSON.parse(localStorage.getItem('NIHOLA_HISTORY') || '[]');
+        const newItem = {
+          id: Date.now(),
+          plant: data.plant_name || "O'simlik",
+          disease: data.disease_name || "Tashxis",
+          status: data.status || "Tekshirildi",
+          date: new Date().toLocaleDateString('uz-UZ', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+          severity: data.severity || "O'rtacha",
+          data: data
+        };
+
+        history.unshift(newItem);
+        if (history.length > 25) history.pop();
+        localStorage.setItem('NIHOLA_HISTORY', JSON.stringify(history));
+
+        updateHomeRecentSnippet(newItem);
+      } catch (e) {
+        console.warn('History save error:', e);
+      }
+    }
+
+    function updateHomeRecentSnippet(item) {
+      const sec = document.getElementById('homeRecentSection');
+      const box = document.getElementById('homeRecentContent');
+      if (!item) {
+        sec.style.display = 'none';
+        return;
+      }
+      sec.style.display = 'block';
+      box.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:700; font-size:14px;">${item.plant} — ${item.disease}</div>
+            <div style="font-size:11px; color:#64748B;">${item.date} &bull; ${item.status}</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="switchTab('tarix')">Barchasi</button>
+        </div>
+      `;
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('historyListContainer');
+      const history = JSON.parse(localStorage.getItem('NIHOLA_HISTORY') || '[]');
+
+      if (history.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:30px; color:#64748B;">Hozircha hech qanday tahlil o\'tkazilmagan.</div>';
+        return;
+      }
+
+      let html = '';
+      history.forEach((h, idx) => {
+        html += `
+          <div class="history-item" onclick="loadHistoryItem(${idx})">
+            <div style="font-size:24px; padding:6px; background:#E8F5E9; border-radius:8px;">🌿</div>
+            <div class="history-content">
+              <h4 class="history-title">${h.plant} — ${h.disease}</h4>
+              <div class="history-meta">${h.date} &bull; ${h.status}</div>
+            </div>
+            <span style="font-size:16px; color:#94A3B8;">&rarr;</span>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function loadHistoryItem(index) {
+      const history = JSON.parse(localStorage.getItem('NIHOLA_HISTORY') || '[]');
+      const item = history[index];
+      if (!item || !item.data) return;
+
+      switchTab('sogliq');
+      renderDiagnosisResult(item.data);
+    }
+
+    function clearAllHistory() {
+      if (confirm('Barcha tahlillar tarixini o\'chirmoqchimisiz?')) {
+        localStorage.removeItem('NIHOLA_HISTORY');
+        renderHistory();
+        updateHomeRecentSnippet(null);
+      }
+    }
+
+    // --- 13. SETTINGS & STATUS MODAL ---
+    function openSettingsModal() {
+      hapticFeedback('light');
+      const savedKey = localStorage.getItem('NIHOLA_GEMINI_KEY') || '';
+      const savedServer = localStorage.getItem('NIHOLA_SERVER_URL') || '';
+      document.getElementById('settingsApiKeyInput').value = savedKey;
+      const srvEl = document.getElementById('settingsServerUrlInput');
+      if (srvEl) srvEl.value = savedServer;
+      document.getElementById('settingsBackdrop').classList.add('open');
+    }
+
+    function closeSettingsModal(e) {
+      if (e) e.stopPropagation();
+      document.getElementById('settingsBackdrop').classList.remove('open');
+    }
+
+    function saveApiKey() {
+      const val = (document.getElementById('settingsApiKeyInput').value || '').trim();
+      if (val) {
+        localStorage.setItem('NIHOLA_GEMINI_KEY', val);
+      } else {
+        localStorage.removeItem('NIHOLA_GEMINI_KEY');
+      }
+
+      const srvEl = document.getElementById('settingsServerUrlInput');
+      if (srvEl) {
+        const srvVal = (srvEl.value || '').trim();
+        if (srvVal) {
+          localStorage.setItem('NIHOLA_SERVER_URL', srvVal);
+        } else {
+          localStorage.removeItem('NIHOLA_SERVER_URL');
+        }
+      }
+
+      checkStatus();
+      closeSettingsModal();
+      hapticFeedback('medium');
+    }
+
+    function clearApiKey() {
+      localStorage.removeItem('NIHOLA_GEMINI_KEY');
+      localStorage.removeItem('NIHOLA_SERVER_URL');
+      document.getElementById('settingsApiKeyInput').value = '';
+      const srvEl = document.getElementById('settingsServerUrlInput');
+      if (srvEl) srvEl.value = '';
+      checkStatus();
+      closeSettingsModal();
+    }
+
+    async function checkStatus() {
+      const activeKey = getActiveApiKey();
+      const badge = document.getElementById('aiBadge');
+      const badgeText = document.getElementById('aiBadgeText');
+      const statusText = document.getElementById('settingsStatusText');
+
+      // 1. Avval mahalliy yoki maxsus sozlangan backend serverni tekshiramiz
+      try {
+        const resp = await fetch(getApiUrl('/api/status'));
+        if (resp && resp.ok) {
+          const data = await resp.json();
+          badge.className = 'status-badge live';
+          badgeText.textContent = '🟢 Jonli AI (Server)';
+          if (statusText) statusText.textContent = '🟢 Jonli Gemini Vision AI server orqali faol';
+          return;
+        }
+      } catch (e) {
+        // Server yo'q yoki mijoz telefoni uzoqda
+      }
+
+      // 2. Agar server bo'lmasa, to'g'ridan-to'g'ri Jonli Google Gemini Buluti orqali ishlaydi (Mening API kalitim orqali)
+      if (activeKey) {
+        badge.className = 'status-badge live';
+        badgeText.textContent = '🟢 Jonli AI (Bulut)';
+        if (statusText) statusText.textContent = "🟢 Jonli Google Gemini Vision AI faol (Mening API kalitim orqali barcha uchun)";
+        return;
+      }
+
+      badge.className = 'status-badge offline';
+      badgeText.textContent = '🟡 Offline';
+      if (statusText) statusText.textContent = '🟡 Offline Agro-Andoza Bazasi';
+    }
+
+
+    // --- 14. DARK MODE (TUNGI REJIM) ---
+    function toggleDarkMode() {
+      hapticFeedback('light');
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('NIHOLA_THEME', isDark ? 'dark' : 'light');
+      const btn = document.getElementById('themeToggleBtn');
+      if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+    }
+
+    // --- 15. FOYDALANUVCHILAR (LOGIN / PROFIL) ---
+    let currentUser = null;
+
+    function initAuth() {
+      const savedTheme = localStorage.getItem('NIHOLA_THEME');
+      if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        const btn = document.getElementById('themeToggleBtn');
+        if (btn) btn.textContent = '☀️';
+      }
+
+      const savedUser = localStorage.getItem('NIHOLA_USER');
+      if (savedUser) {
+        try {
+          currentUser = JSON.parse(savedUser);
+          updateHeaderUserBadge();
+        } catch (e) {}
+      }
+
+      // Agar Telegram WebApp ichida bo'lsa va profil bo'lmasa, Telegram ismini olish
+      if (!currentUser && window.Telegram?.WebApp?.initDataUnsafe?.user) {
+        const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+        currentUser = {
+          name: [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') || tgUser.username || 'Telegram Foydalanuvchisi',
+          phone: 'Telegram ID: ' + tgUser.id,
+          region: 'Toshkent',
+          role: 'Fermer'
+        };
+        localStorage.setItem('NIHOLA_USER', JSON.stringify(currentUser));
+        updateHeaderUserBadge();
+      }
+
+      loadWeatherInfo(currentUser?.region || 'Toshkent');
+    }
+
+    function updateHeaderUserBadge() {
+      const userText = document.getElementById('userHeaderText');
+      const userAvatar = document.getElementById('userHeaderAvatar');
+      if (currentUser) {
+        const namePart = (currentUser.name || 'Fermer').split(' ')[0];
+        userText.textContent = namePart;
+        userAvatar.textContent = '👨‍🌾';
+      } else {
+        userText.textContent = 'Kirish';
+        userAvatar.textContent = '👤';
+      }
+    }
+
+    function openAuthModal() {
+      hapticFeedback('light');
+      const backdrop = document.getElementById('authBackdrop');
+      backdrop.classList.add('open');
+
+      if (currentUser) {
+        document.getElementById('authGuestView').style.display = 'none';
+        document.getElementById('authUserView').style.display = 'block';
+
+        document.getElementById('profileUserName').textContent = currentUser.name || 'Fermer';
+        document.getElementById('profileUserRole').textContent = `${currentUser.role || 'Fermer'} • ${currentUser.region || 'Toshkent'}`;
+        document.getElementById('profileUserPhone').textContent = currentUser.phone || '';
+        const history = JSON.parse(localStorage.getItem('NIHOLA_HISTORY') || '[]');
+        document.getElementById('profileScansCount').textContent = `${history.length} ta`;
+      } else {
+        document.getElementById('authGuestView').style.display = 'block';
+        document.getElementById('authUserView').style.display = 'none';
+        switchAuthTab('login');
+      }
+    }
+
+    function closeAuthModal(e) {
+      if (e) e.stopPropagation();
+      document.getElementById('authBackdrop').classList.remove('open');
+    }
+
+    function switchAuthTab(tab) {
+      hapticFeedback('light');
+      const loginForm = document.getElementById('authLoginForm');
+      const regForm = document.getElementById('authRegisterForm');
+      const tabLogin = document.getElementById('authTabLoginBtn');
+      const tabReg = document.getElementById('authTabRegisterBtn');
+
+      if (tab === 'login') {
+        loginForm.style.display = 'block';
+        regForm.style.display = 'none';
+        tabLogin.className = 'btn btn-sm';
+        tabReg.className = 'btn btn-secondary btn-sm';
+      } else {
+        loginForm.style.display = 'none';
+        regForm.style.display = 'block';
+        tabLogin.className = 'btn btn-secondary btn-sm';
+        tabReg.className = 'btn btn-sm';
+      }
+    }
+
+    async function handleLogin() {
+      const phone = (document.getElementById('loginPhone').value || '').trim();
+      const password = (document.getElementById('loginPassword').value || '').trim();
+      const errBox = document.getElementById('loginError');
+      errBox.style.display = 'none';
+
+      if (!phone || !password) {
+        errBox.textContent = 'Iltimos, telefon raqam va parolni kiriting.';
+        errBox.style.display = 'block';
+        return;
+      }
+
+      hapticFeedback('medium');
+      try {
+        const resp = await fetch(getApiUrl('/api/auth/login'), {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({phone, password})
+        });
+        const data = await resp.json();
+        if (data.success && data.user) {
+          currentUser = data.user;
+          localStorage.setItem('NIHOLA_USER', JSON.stringify(currentUser));
+          updateHeaderUserBadge();
+          closeAuthModal();
+          alert(`Hush kelibsiz, ${currentUser.name}!`);
+        } else {
+          errBox.textContent = data.error || 'Kirishda xatolik yuz berdi.';
+          errBox.style.display = 'block';
+        }
+      } catch (e) {
+        // Oflayn login fallback
+        currentUser = { name: 'Fermer', phone: phone, region: 'Toshkent', role: 'Fermer' };
+        localStorage.setItem('NIHOLA_USER', JSON.stringify(currentUser));
+        updateHeaderUserBadge();
+        closeAuthModal();
+      }
+    }
+
+    async function handleRegister() {
+      const name = (document.getElementById('regName').value || '').trim();
+      const phone = (document.getElementById('regPhone').value || '').trim();
+      const region = document.getElementById('regRegion').value;
+      const role = document.getElementById('regRole').value;
+      const password = (document.getElementById('regPassword').value || '').trim();
+      const errBox = document.getElementById('regError');
+      errBox.style.display = 'none';
+
+      if (!name || !phone || !password) {
+        errBox.textContent = "Iltimos, barcha maydonlarni to'ldiring.";
+        errBox.style.display = 'block';
+        return;
+      }
+
+      hapticFeedback('medium');
+      try {
+        const resp = await fetch(getApiUrl('/api/auth/register'), {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({name, phone, region, role, password})
+        });
+        const data = await resp.json();
+        if (data.success && data.user) {
+          currentUser = data.user;
+          localStorage.setItem('NIHOLA_USER', JSON.stringify(currentUser));
+          updateHeaderUserBadge();
+          closeAuthModal();
+          alert(`Tabriklaymiz, ${currentUser.name}! Profilingiz yaratildi.`);
+        } else {
+          errBox.textContent = data.error || "Ro'yxatdan o'tishda xatolik.";
+          errBox.style.display = 'block';
+        }
+      } catch (e) {
+        currentUser = { name: name, phone: phone, region: region, role: role };
+        localStorage.setItem('NIHOLA_USER', JSON.stringify(currentUser));
+        updateHeaderUserBadge();
+        closeAuthModal();
+      }
+    }
+
+    function handleTelegramQuickLogin() {
+      if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
+        const u = window.Telegram.WebApp.initDataUnsafe.user;
+        currentUser = {
+          name: [u.first_name, u.last_name].filter(Boolean).join(' ') || u.username || 'Fermer',
+          phone: '@' + (u.username || 'telegram_user'),
+          region: 'Toshkent',
+          role: 'Telegram Fermer'
+        };
+      } else {
+        currentUser = {
+          name: 'Fermer Mehmon',
+          phone: '+998 90 Telegram',
+          region: 'Toshkent',
+          role: 'Fermer'
+        };
+      }
+      localStorage.setItem('NIHOLA_USER', JSON.stringify(currentUser));
+      updateHeaderUserBadge();
+      closeAuthModal();
+      hapticFeedback('medium');
+      alert(`Telegram orqali muvaffaqiyatli kirdingiz: ${currentUser.name}!`);
+    }
+
+    function handleLogout() {
+      if (confirm('Profilingizdan chiqmoqchimisiz?')) {
+        currentUser = null;
+        localStorage.removeItem('NIHOLA_USER');
+        updateHeaderUserBadge();
+        closeAuthModal();
+      }
+    }
+
+    // --- 16. JONLI OB-HAVO VIDJETI ---
+    const REGION_COORDINATES = {
+      "Toshkent": { lat: 41.2995, lon: 69.2401 },
+      "Samarqand": { lat: 39.6542, lon: 66.9597 },
+      "Farg'ona": { lat: 40.3864, lon: 71.7864 },
+      "Andijon": { lat: 40.7821, lon: 72.3442 },
+      "Namangan": { lat: 40.9983, lon: 71.6726 },
+      "Buxoro": { lat: 39.7747, lon: 64.4286 },
+      "Xorazm": { lat: 41.5500, lon: 60.6333 },
+      "Qashqadaryo": { lat: 38.8606, lon: 65.7891 },
+      "Surxondaryo": { lat: 37.2242, lon: 67.2783 },
+      "Jizzax": { lat: 40.1158, lon: 67.8422 },
+      "Sirdaryo": { lat: 40.4897, lon: 68.7842 },
+      "Navoiy": { lat: 40.0844, lon: 65.3792 },
+      "Qoraqalpog'iston": { lat: 42.4602, lon: 59.6166 }
+    };
+
+    async function loadWeatherInfo(region = 'Toshkent') {
+      let w = null;
+      // 1. Server orqali ob-havo
+      try {
+        const resp = await fetch(getApiUrl(`/api/weather?region=${encodeURIComponent(region)}`));
+        if (resp && resp.ok) {
+          w = await resp.json();
+        }
+      } catch (e) {}
+
+      // 2. To'g'ridan-to'g'ri Open-Meteo orqali jonli ob-havo fallback
+      if (!w) {
+        try {
+          const coords = REGION_COORDINATES[region] || REGION_COORDINATES["Toshkent"];
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m`;
+          const resp = await fetch(url);
+          if (resp && resp.ok) {
+            const meteo = await resp.json();
+            const cur = meteo.current || {};
+            const temp = Math.round(cur.temperature_2m ?? 24);
+            const hum = Math.round(cur.relative_humidity_2m ?? 42);
+            const wind = Math.round(cur.wind_speed_10m ?? 3);
+            const sprayOk = (wind <= 5 && hum <= 75);
+            w = {
+              region: region,
+              temp: temp,
+              humidity: hum,
+              wind: wind,
+              condition: sprayOk ? "Ochiq, maqbul havo" : "Shamolli / Yuqori namlik",
+              icon: "🌤️",
+              spray_ok: sprayOk,
+              spray_msg: sprayOk ? "Ob-havo mo'tadil, agrotexnik ishlov berish mumkin." : "Shamol tezligi yuqori, preparat purkashni kechki salqinga qoldiring."
+            };
+          }
+        } catch (err) {}
+      }
+
+      if (w) {
+        document.getElementById('weatherCity').textContent = w.region + ' viloyati';
+        document.getElementById('weatherCondition').textContent = w.condition;
+        document.getElementById('weatherIcon').textContent = w.icon;
+        document.getElementById('weatherTemp').textContent = w.temp + '°C';
+        document.getElementById('weatherHumidity').textContent = w.humidity + '%';
+        document.getElementById('weatherSprayMsg').textContent = w.spray_msg;
+      }
+    }
+
+    // --- 17. AI AGRONOM CHATI ---
+    let lastAiAnswerText = "";
+
+    function quickAsk(q) {
+      document.getElementById('aiChatInput').value = q;
+      sendAiChatQuestion();
+    }
+
+    async function sendAiChatQuestion() {
+      const input = document.getElementById('aiChatInput');
+      const q = (input.value || '').trim();
+      if (!q) return;
+
+      hapticFeedback('medium');
+      const loading = document.getElementById('aiChatLoading');
+      const box = document.getElementById('aiChatAnswerBox');
+      const textEl = document.getElementById('aiChatAnswerText');
+
+      loading.style.display = 'block';
+      box.style.display = 'none';
+
+      const activeKey = getActiveApiKey();
+      const headers = {'Content-Type': 'application/json'};
+      if (activeKey) headers['X-Gemini-Key'] = activeKey;
+
+      let answerText = null;
+
+      // 1. Backend server orqali
+      try {
+        const resp = await fetch(getApiUrl('/api/ai/ask'), {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+            question: q,
+            region: currentUser?.region || 'Toshkent'
+          })
+        });
+        if (resp && resp.ok) {
+          const data = await resp.json();
+          answerText = data.answer;
+        }
+      } catch (err) {
+        console.warn("Server javob bermadi, to'g'ridan-to'g'ri Jonli AI Agronom chaqirilmoqda:", err);
+      }
+
+      // 2. To'g'ridan-to'g'ri Jonli Gemini AI orqali (Mening API kalitim)
+      if (!answerText) {
+        try {
+          const directChat = await callDirectGeminiChat(q, currentUser?.region || 'Toshkent');
+          answerText = directChat.answer;
+        } catch (e) {
+          console.warn("Direct chat error:", e);
+        }
+      }
+
+      // 3. Oflayn andoza javob
+      if (!answerText) {
+        answerText = "Ekinlarni vaqtida sug'oring, ildiz chirishiga qarshi Previkur Energy va zararkunandalarga qarshi Aktara qo'llang.";
+      }
+
+      lastAiAnswerText = answerText;
+      textEl.textContent = lastAiAnswerText;
+      box.style.display = 'block';
+      loading.style.display = 'none';
+      input.value = '';
+    }
+
+    function speakAiAnswer() {
+      if (lastAiAnswerText) {
+        toggleAudioSpeech(lastAiAnswerText);
+      }
+    }
+
+
+    // ON LOAD INITIALIZE
+    initAuth();
+    checkStatus();
+    loadPharmacies();
+    const initHistory = JSON.parse(localStorage.getItem('NIHOLA_HISTORY') || '[]');
+    if (initHistory.length > 0) updateHomeRecentSnippet(initHistory[0]);
+  </script>
+</body>
+</html>

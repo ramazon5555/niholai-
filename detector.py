@@ -17,6 +17,7 @@ import urllib.error
 from PIL import Image
 
 from config import GEMINI_API_KEY
+from pharmacies import get_medicines_for_diagnosis
 
 
 # O'zbekistonda ko'p uchraydigan o'simlik kasalliklari bo'yicha offline agronomik baza
@@ -172,7 +173,17 @@ class PlantDiseaseDetector:
                 '  "prevention": [\n'
                 '    "1. Kasallikning tarqalishini to\'xtatish choralari",\n'
                 '    "2. To\'g\'ri sug\'orish va oziqlantirish tartibi"\n'
-                "  ]\n"
+                '  ],\n'
+                '  "medicines": [\n'
+                '    {\n'
+                '      "name": "Preparat nomi (masalan: Ridomil Gold MZ)",\n'
+                '      "type": "Fungitsid / Insektitsid / Biopreparat",\n'
+                '      "dosage": "10 litr suvga miqdori",\n'
+                '      "instruction": "Qo\'llash usuli",\n'
+                '      "price_range": "Taxminiy narxi so\'mda",\n'
+                '      "safety": "Kutilish muddati va xavfsizlik"\n'
+                '    }\n'
+                '  ]\n'
                 "}\n"
                 "Javob faqat o'zbek tilida, professional va amaliy bo'lsin."
             )
@@ -198,7 +209,7 @@ class PlantDiseaseDetector:
             }
 
             # Eng so'nggi va barqaror modellarni sinash
-            candidate_models = ["gemini-flash-latest", "gemini-3.8-flash", "gemini-2.5-flash-lite"]
+            candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.8-flash", "gemini-flash-latest", "gemini-3.5-flash"]
             last_err = None
 
             for model_name in candidate_models:
@@ -221,6 +232,12 @@ class PlantDiseaseDetector:
                         parsed["success"] = True
                         parsed["mode"] = "live_gemini"
                         parsed["source"] = f"🟢 Gemini Vision AI ({model_name} Jonli Ekspert)"
+                        if not parsed.get("medicines"):
+                            parsed["medicines"] = get_medicines_for_diagnosis(
+                                parsed.get("disease_name", ""),
+                                parsed.get("plant_name", ""),
+                                parsed.get("status", "")
+                            )
                         return parsed
                 except Exception as ex:
                     last_err = ex
@@ -229,20 +246,15 @@ class PlantDiseaseDetector:
             raise last_err or Exception("Barcha Gemini modellarida ulanish muammosi")
 
         except urllib.error.HTTPError as e:
-            err_msg = e.read().decode("utf-8") if e.fp else str(e)
-            return {
-                "success": False,
-                "error": f"Gemini API xatoligi ({e.code}): {err_msg}",
-                "mode": "fallback",
-                "fallback": self._analyze_offline_database(path),
-            }
+            fallback_res = self._analyze_offline_database(path)
+            fallback_res["notice"] = "Gemini API band yoki ulanish cheklangan. Offline agro-baza ma'lumotlari taqdim etildi."
+            fallback_res["mode"] = "offline_template"
+            return fallback_res
         except Exception as e:
-            return {
-                "success": False,
-                "error": f"AI tahlilida kutilmagan xatolik: {str(e)}",
-                "mode": "fallback",
-                "fallback": self._analyze_offline_database(path),
-            }
+            fallback_res = self._analyze_offline_database(path)
+            fallback_res["notice"] = f"AI tahlilida kutilmagan holat: offline agro-baza ma'lumotlari taqdim etildi."
+            fallback_res["mode"] = "offline_template"
+            return fallback_res
 
     def _analyze_offline_database(self, path: Path) -> Dict[str, Any]:
         """
@@ -266,6 +278,11 @@ class PlantDiseaseDetector:
         selected_entry["mode"] = "offline_template"
         selected_entry["source"] = "🟡 Offline Agro-Andoza Bazasi (API kalitsiz rejim)"
         selected_entry["image_meta"] = img_info
+        selected_entry["medicines"] = get_medicines_for_diagnosis(
+            selected_entry.get("disease_name", ""),
+            selected_entry.get("plant_name", ""),
+            selected_entry.get("status", "")
+        )
         selected_entry["notice"] = (
             "Siz hozir offline andoza rejimidasiz. Haqiqiy jonli agronomik AI tahlilini olish uchun "
             "yuqoridagi sozlamalar oynasidan 'Gemini API' kalitingizni kiriting yoki "
@@ -331,7 +348,7 @@ class PlantDiseaseDetector:
                     },
                 }
 
-                for model_name in ["gemini-flash-latest", "gemini-3.8-flash", "gemini-2.5-flash-lite"]:
+                for model_name in ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.8-flash", "gemini-flash-latest"]:
                     try:
                         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={effective_key}"
                         req = urllib.request.Request(
